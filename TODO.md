@@ -10,16 +10,16 @@ This file tracks the progress of the **Ballegram** project. Tasks are broken dow
     - [x] Create `Dockerfile` for multi-stage build.
     - [x] Set up GitHub Actions for testing and Docker verification.
 
-## 🟡 Phase 1: Database & Foundation (Next Up)
-- [ ] **Database Schema**
-    - [ ] Create `docker/init.sql`.
-    - [ ] Define tables: `users`, `chats`, `messages`, `posts`.
-    - [ ] Add `docker-compose.yml` for local development (Postgres + Redis).
-- [ ] **Common Module**
-    - [ ] Implement DB client wrapper in `common` (currently exists but verify completeness).
-    - [ ] Implement error types.
+## 🟢 Phase 1: Database & Foundation (Completed)
+- [x] **Database Schema**
+    - [x] Create `docker/init.sql`.
+    - [x] Define tables: `users`, `chats`, `messages`, `posts`.
+    - [x] Add `docker-compose.yml` for local development (Postgres + Redis).
+- [x] **Common Module**
+    - [x] Implement DB client wrapper in `common` (currently exists but verify completeness).
+    - [x] Implement error types.
 
-## 🟠 Phase 2: Authentication Module
+## 🟡 Phase 2: Authentication Module (Next Up)
 - [ ] **User Management**
     - [ ] Define `User` record/entity.
     - [ ] Implement `register` function (password hashing).

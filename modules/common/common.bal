@@ -9,3 +9,5 @@ public type DatabaseConfig record {|
 public type NotFoundError distinct error;
 
 public type UnauthorizedError distinct error;
+
+public type DatabaseError distinct error;

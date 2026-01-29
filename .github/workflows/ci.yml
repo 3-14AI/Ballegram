@@ -10,21 +10,6 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpassword
-          POSTGRES_DB: ballegram_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -34,15 +19,20 @@ jobs:
         with:
           version: 2201.12.11
 
+      - name: Start Environment
+        run: |
+          docker compose up -d
+          sleep 10 # Wait for DB to be ready
+
       - name: Create Config.toml
         run: |
           cat <<EOF > Config.toml
           [database]
           host = "localhost"
           port = 5432
-          user = "testuser"
-          password = "testpassword"
-          database = "ballegram_test"
+          user = "user"
+          password = "password"
+          database = "ballegram"
           EOF
 
       - name: Run Tests
