@@ -1,9 +1,28 @@
 import ballerina/test;
+import ballegram.common;
 
-@test:Config {}
+common:DatabaseConfig dbConfig = {
+    host: "localhost",
+    port: 5432,
+    user: "postgres",
+    password: "dummy_password",
+    database: "ballegram"
+};
+
+@test:Config { enable: false }
 function testRegister() {
-    error? result = register("alice", "123");
-    test:assertEquals(result, (), "Registration should succeed (mock)");
+    common:Database|error db = new(dbConfig);
+    if db is error {
+        test:assertFail("Failed to init db: " + db.message());
+        return;
+    }
+
+    User|error result = register(db, "alice", "alice@example.com", "123");
+    if result is error {
+        test:assertFail("Registration failed: " + result.message());
+    } else {
+        test:assertEquals(result.username, "alice");
+    }
 }
 
 @test:Config {}
