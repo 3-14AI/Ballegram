@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: ballegram_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Ballerina
+        uses: ballerina-platform/setup-ballerina@v1
+        with:
+          version: 2201.12.11
+
+      - name: Run Tests
+        # Passing DB config just in case future tests need it
+        env:
+           BAL_CONFIG_VAR_database_host: localhost
+           BAL_CONFIG_VAR_database_port: 5432
+           BAL_CONFIG_VAR_database_user: testuser
+           BAL_CONFIG_VAR_database_password: testpassword
+           BAL_CONFIG_VAR_database_database: ballegram_test
+        run: bal test
+
+      - name: Build Project
+        run: bal build
+
+      - name: Build Docker Image
+        run: docker build -t ballegram:latest .
+
+      - name: Verify Docker Image
+        run: |
+          echo "Starting Docker container verification..."
+          # Run container with host networking to access the postgres service on localhost
+          docker run -d --name ballegram_app \
+            --network host \
+            -e BAL_CONFIG_VAR_database_host=localhost \
+            -e BAL_CONFIG_VAR_database_port=5432 \
+            -e BAL_CONFIG_VAR_database_user=testuser \
+            -e BAL_CONFIG_VAR_database_password=testpassword \
+            -e BAL_CONFIG_VAR_database_database=ballegram_test \
+            ballegram:latest
+
+          # Wait for application startup
+          sleep 10
+
+          # Print logs for debugging
+          echo "Container Logs:"
+          docker logs ballegram_app
+
+          # Check if container is still running
+          if [ "$(docker inspect -f '{{.State.Running}}' ballegram_app)" = "true" ]; then
+            echo "Verification Success: Container is healthy and running."
+            exit 0
+          else
+            echo "Verification Failed: Container exited unexpectedly."
+            exit 1
+          fi

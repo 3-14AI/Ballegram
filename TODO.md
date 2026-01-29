@@ -1,98 +1,58 @@
 # Implementation Plan 📝
 
-This file tracks the progress of the **Ballegram** project. Tasks are sorted by priority.
+This file tracks the progress of the **Ballegram** project. Tasks are broken down into small, PR-sized increments.
 
-## 🟢 Phase 0: Initialization & Infrastructure
+## 🟢 Infrastructure & DevOps (Completed)
+- [x] **Project Setup**
+    - [x] Initialize Ballerina project structure.
+    - [x] Create module structure (`common`, `auth`, `chat`, `media`, `social`).
+- [x] **CI/CD**
+    - [x] Create `Dockerfile` for multi-stage build.
+    - [x] Set up GitHub Actions for testing and Docker verification.
 
-- [ ] **Project Setup**
-    - [ ] Initialize Ballerina project: `bal new ballegram`
-    - [ ] Create directory structure (`modules/`, `service/`, `docker/`).
-- [ ] **Database Setup**
-    - [ ] Create `docker-compose.yml` with PostgreSQL and Redis.
-    - [ ] Create `docker/init.sql` with the initial schema (Users, Chats, Messages, Posts).
-    - [ ] Verify DB connection from Ballerina using `ballerinax/postgresql`.
+## 🟡 Phase 1: Database & Foundation (Next Up)
+- [ ] **Database Schema**
+    - [ ] Create `docker/init.sql`.
+    - [ ] Define tables: `users`, `chats`, `messages`, `posts`.
+    - [ ] Add `docker-compose.yml` for local development (Postgres + Redis).
+- [ ] **Common Module**
+    - [ ] Implement DB client wrapper in `common` (currently exists but verify completeness).
+    - [ ] Implement error types.
 
-## 🟡 Phase 1: Foundation (Auth & Users)
+## 🟠 Phase 2: Authentication Module
+- [ ] **User Management**
+    - [ ] Define `User` record/entity.
+    - [ ] Implement `register` function (password hashing).
+- [ ] **Security**
+    - [ ] Implement `login` function (JWT generation).
+    - [ ] Implement JWT validation middleware.
+- [ ] **API**
+    - [ ] Connect `auth` service endpoints to implementation.
 
-- [ ] **Module: Common**
-    - [ ] Define shared error types (`NotFoundError`, `UnauthorizedError`).
-    - [ ] Create DB client wrapper.
-- [ ] **Module: Auth**
-    - [ ] Implement `Register` (create user, hash password).
-    - [ ] Implement `Login` (verify password, issue JWT).
-    - [ ] Implement JWT validation middleware/interceptor.
-- [ ] **Module: User**
-    - [ ] `GET /users/me` (get own profile).
-    - [ ] `PUT /users/me` (update bio/avatar).
-    - [ ] `GET /users/{id}` (get other profile).
+## 🔵 Phase 3: Chat Module
+- [ ] **Chat Core**
+    - [ ] Define `Chat` and `Message` records.
+    - [ ] Implement `createChat` DB logic.
+    - [ ] Implement `saveMessage` DB logic.
+    - [ ] Implement `getChatHistory`.
+- [ ] **Real-time**
+    - [ ] Implement WebSocket listener.
+    - [ ] Implement connection management (User -> Connection map).
+    - [ ] Implement message broadcasting.
 
-## 🟠 Phase 2: Core Messaging (The "Telegram" Part)
+## 🟣 Phase 4: Social Module
+- [ ] **Media**
+    - [ ] Implement file upload handling (S3/Local).
+- [ ] **Posts**
+    - [ ] Define `Post` record.
+    - [ ] Implement `createPost`.
+- [ ] **Feed**
+    - [ ] Implement `getFeed` (query logic).
 
-- [ ] **Module: Chat (Data Layer)**
-    - [ ] `createChat(user_id_1, user_id_2)` -> UUID.
-    - [ ] `saveMessage(chat_id, sender_id, content)` -> MessageID.
-    - [ ] `getChatHistory(chat_id, limit, offset)`.
-- [ ] **Service: WebSocket Chat**
-    - [ ] Initialize `websocket:Listener`.
-    - [ ] Manage active connections map (User ID -> WebSocket Caller).
-    - [ ] Implement `onMessage`: save to DB -> lookup recipient -> send payload.
-    - [ ] Handle offline recipients (queueing or simple "missed" logic).
-
-## 🔵 Phase 3: Social Feed (The "Instagram" Part)
-
-- [ ] **Module: Media**
-    - [ ] Setup S3 client (`ballerinax/aws.s3`) or local file simulation.
-    - [ ] `POST /media/upload` -> returns URL.
-- [ ] **Module: Social (Posts)**
-    - [ ] `createPost(user_id, caption, photo_urls)`.
-    - [ ] `getFeed(user_id)`:
-        - *Logic:* Query posts from users followed by `user_id`.
-        - *Sort:* Reverse chronological order.
-
-## 🟣 Phase 4: Interactions
-
-- [ ] **Likes & Comments**
-    - [ ] `POST /posts/{id}/like`.
-    - [ ] `POST /posts/{id}/comment`.
-    - [ ] Add `like_count` and `comment_count` to Post DTOs.
-- [ ] **Follow System**
-    - [ ] `POST /users/{id}/follow`.
-    - [ ] `DELETE /users/{id}/follow`.
-    - [ ] Update Feed logic to respect follows.
-
-## ⚪ Phase 5: Advanced Features
-
-- [ ] **Group Chats**
-    - [ ] Update WebSocket logic to fan-out messages to multiple recipients.
-    - [ ] Add `createGroup`, `addMember`, `removeMember` endpoints.
+## ⚪ Phase 5: Interaction & Polish
+- [ ] **Interactions**
+    - [ ] Implement Likes.
+    - [ ] Implement Comments.
+    - [ ] Implement Follow system.
 - [ ] **Search**
-    - [ ] Simple SQL `ILIKE` search for usernames.
-- [ ] **Push Notifications**
-    - [ ] Integration with Firebase (FCM).
-
----
-
-## 🧪 Testing Strategy (No Client)
-
-Since we do not have a frontend, verification is critical.
-
-### 1. Unit Testing
-Run `bal test` to execute tests within modules.
-- **Auth:** Mock DB, test password hashing vectors.
-- **Social:** Test feed algorithm logic (sorting, filtering).
-
-### 2. Integration Testing
-Create a `tests/integration_test.bal` that performs a full flow:
-1.  **Register** User A and User B.
-2.  **Login** to get JWTs.
-3.  **User A posts** an image.
-4.  **User B follows** User A.
-5.  **User B checks feed** -> Expects User A's post.
-6.  **User A messages** User B (requires WS client simulation).
-
-### 3. Manual API Verification
-Create a `requests.http` or `curl_commands.sh` file in the root.
-```bash
-# Example: Register
-curl -X POST http://localhost:9090/auth/register -d '{"username": "alice", "password": "123"}'
-```
+    - [ ] Implement User search.
