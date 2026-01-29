@@ -48,9 +48,11 @@ jobs:
           echo "Starting Docker container verification..."
           # Run container with host networking to access the postgres service on localhost
           # Passing configurables via command-line arguments (-Ckey=value) is more reliable for records than env vars
+          # Explicitly running the java command to avoid issues with base image entrypoints interpreting flags
           docker run -d --name ballegram_app \
             --network host \
             ballegram:latest \
+            java -jar ballegram.jar \
             -Cdatabase.host=localhost \
             -Cdatabase.port=5432 \
             -Cdatabase.user=testuser \
