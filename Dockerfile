@@ -1,5 +1,5 @@
 # Runtime Stage
-FROM --platform=linux/amd64 eclipse-temurin:17-jre
+FROM --platform=linux/amd64 eclipse-temurin:21-jre
 WORKDIR /app
 
 # Copy the JAR built by the external environment (CI or local `bal build`)
