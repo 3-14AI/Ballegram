@@ -1,5 +1,5 @@
 # Stage 1: Build the JAR
-FROM ballerina/ballerina:latest AS builder
+FROM --platform=linux/amd64 ballerina/ballerina:latest AS builder
 USER root
 WORKDIR /app
 COPY . .
@@ -8,7 +8,7 @@ COPY . .
 RUN bal build --skip-tests
 
 # Stage 2: Create the runtime image
-FROM eclipse-temurin:17-jre
+FROM --platform=linux/amd64 eclipse-temurin:17-jre
 WORKDIR /app
 
 # Copy the built JAR from the builder stage
