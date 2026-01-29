@@ -35,13 +35,6 @@ jobs:
           version: 2201.12.11
 
       - name: Run Tests
-        # Passing DB config just in case future tests need it
-        env:
-           BAL_CONFIG_VAR_database_host: localhost
-           BAL_CONFIG_VAR_database_port: 5432
-           BAL_CONFIG_VAR_database_user: testuser
-           BAL_CONFIG_VAR_database_password: testpassword
-           BAL_CONFIG_VAR_database_database: ballegram_test
         run: bal test
 
       - name: Build Project
