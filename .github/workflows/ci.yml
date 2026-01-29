@@ -34,6 +34,17 @@ jobs:
         with:
           version: 2201.12.11
 
+      - name: Create Config.toml
+        run: |
+          cat <<EOF > Config.toml
+          [database]
+          host = "localhost"
+          port = 5432
+          user = "testuser"
+          password = "testpassword"
+          database = "ballegram_test"
+          EOF
+
       - name: Run Tests
         run: bal test
 
@@ -46,18 +57,13 @@ jobs:
       - name: Verify Docker Image
         run: |
           echo "Starting Docker container verification..."
+
           # Run container with host networking to access the postgres service on localhost
-          # Passing configurables via command-line arguments (-Ckey=value) is more reliable for records than env vars
-          # Explicitly running the java command to avoid issues with base image entrypoints interpreting flags
           docker run -d --name ballegram_app \
             --network host \
+            -v $(pwd)/Config.toml:/app/Config.toml \
             ballegram:latest \
-            java -jar ballegram.jar \
-            -Cdatabase.host=localhost \
-            -Cdatabase.port=5432 \
-            -Cdatabase.user=testuser \
-            -Cdatabase.password=testpassword \
-            -Cdatabase.database=ballegram_test
+            java -jar ballegram.jar
 
           # Wait for application startup
           sleep 10
