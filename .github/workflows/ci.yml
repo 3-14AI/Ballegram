@@ -47,14 +47,15 @@ jobs:
         run: |
           echo "Starting Docker container verification..."
           # Run container with host networking to access the postgres service on localhost
+          # Passing configurables via command-line arguments (-Ckey=value) is more reliable for records than env vars
           docker run -d --name ballegram_app \
             --network host \
-            -e BAL_CONFIG_VAR_database_host=localhost \
-            -e BAL_CONFIG_VAR_database_port=5432 \
-            -e BAL_CONFIG_VAR_database_user=testuser \
-            -e BAL_CONFIG_VAR_database_password=testpassword \
-            -e BAL_CONFIG_VAR_database_database=ballegram_test \
-            ballegram:latest
+            ballegram:latest \
+            -Cdatabase.host=localhost \
+            -Cdatabase.port=5432 \
+            -Cdatabase.user=testuser \
+            -Cdatabase.password=testpassword \
+            -Cdatabase.database=ballegram_test
 
           # Wait for application startup
           sleep 10
