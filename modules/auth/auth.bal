@@ -18,6 +18,8 @@ public type User record {|
 |};
 
 # Internal record for database mapping including the password hash.
+#
+# + password_hash - The hashed password
 type UserEntity record {|
     *User;
     string password_hash;
@@ -47,10 +49,10 @@ public function register(common:Database db, string username, string email, stri
                                     VALUES (${username}, ${email}, ${storedPassword})
                                     RETURNING id, username, email, created_at`;
 
-    // We only select the fields that match the public User type
-    User|sql:Error result = db.db->queryRow(query);
+    // Execute query and map result to User type
+    User user = check db.db->queryRow(query);
 
-    return result;
+    return user;
 }
 
 # Logs in a user.
