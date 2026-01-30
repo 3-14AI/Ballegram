@@ -23,9 +23,9 @@ This file tracks the progress of the **Ballegram** project. Tasks are broken dow
 - [x] **User Management**
     - [x] Define `User` record/entity.
     - [x] Implement `register` function (password hashing).
-- [ ] **Security**
-    - [ ] Implement `login` function (JWT generation).
-    - [ ] Implement JWT validation middleware.
+- [x] **Security**
+    - [x] Implement `login` function (JWT generation).
+    - [x] Implement JWT validation middleware.
 - [ ] **API**
     - [ ] Connect `auth` service endpoints to implementation.
 
