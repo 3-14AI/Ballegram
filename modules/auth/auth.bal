@@ -4,12 +4,23 @@ import ballerina/time;
 import ballerina/uuid;
 import ballegram.common;
 
+# Represents a user in the system.
+#
+# + id - The user's ID
+# + username - The username
+# + email - The email address
+# + created_at - The timestamp when the user was created
 public type User record {|
     int id;
     string username;
     string? email;
-    string password_hash;
     time:Utc created_at;
+|};
+
+# Internal record for database mapping including the password hash.
+type UserEntity record {|
+    *User;
+    string password_hash;
 |};
 
 # Registers a new user.
@@ -27,15 +38,16 @@ public function register(common:Database db, string username, string email, stri
     // Combine salt and password
     string input = salt + password;
     byte[] hash = crypto:hashSha256(input.toBytes());
-    string hashHex = hash.toHexString();
+    string hashHex = hash.toBase16();
 
     // Store format: salt:hash
     string storedPassword = salt + ":" + hashHex;
 
     sql:ParameterizedQuery query = `INSERT INTO users (username, email, password_hash)
                                     VALUES (${username}, ${email}, ${storedPassword})
-                                    RETURNING id, username, email, password_hash, created_at`;
+                                    RETURNING id, username, email, created_at`;
 
+    // We only select the fields that match the public User type
     User|sql:Error result = db.db->queryRow(query);
 
     return result;

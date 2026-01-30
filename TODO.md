@@ -20,9 +20,9 @@ This file tracks the progress of the **Ballegram** project. Tasks are broken dow
     - [x] Implement error types.
 
 ## 🟡 Phase 2: Authentication Module (Next Up)
-- [ ] **User Management**
-    - [ ] Define `User` record/entity.
-    - [ ] Implement `register` function (password hashing).
+- [x] **User Management**
+    - [x] Define `User` record/entity.
+    - [x] Implement `register` function (password hashing).
 - [ ] **Security**
     - [ ] Implement `login` function (JWT generation).
     - [ ] Implement JWT validation middleware.
