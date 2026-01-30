@@ -1,6 +1,6 @@
 import ballerinax/postgresql;
 
-public client class Database {
+public isolated client class Database {
     public final postgresql:Client db;
 
     public function init(DatabaseConfig config) returns error? {

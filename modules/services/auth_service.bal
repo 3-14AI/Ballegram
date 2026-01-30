@@ -18,7 +18,7 @@ type LoginResponse record {|
 
 service /auth on ep {
 
-    resource function post register(@http:Payload RegisterRequest req) returns http:Created|http:BadRequest|http:InternalServerError {
+    isolated resource function post register(@http:Payload RegisterRequest req) returns http:Created|http:BadRequest|http:InternalServerError {
         if req.username == "" || req.email == "" || req.password == "" {
              return <http:BadRequest> { body: "Missing required fields" };
         }
@@ -31,7 +31,7 @@ service /auth on ep {
         return <http:Created> { body: user };
     }
 
-    resource function post login(@http:Payload LoginRequest req) returns LoginResponse|http:Unauthorized|http:BadRequest {
+    isolated resource function post login(@http:Payload LoginRequest req) returns LoginResponse|http:Unauthorized|http:BadRequest {
         if req.username == "" || req.password == "" {
             return <http:BadRequest> { body: "Missing required fields" };
         }
