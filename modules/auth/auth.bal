@@ -50,7 +50,9 @@ public function register(common:Database db, string username, string email, stri
                                     RETURNING id, username, email, created_at`;
 
     // Execute query and map result to User type
-    User user = check db.db->queryRow(query);
+    // Must assign client to a local variable for action invocation
+    sql:Client dbClient = db.db;
+    User user = check dbClient->queryRow(query);
 
     return user;
 }
