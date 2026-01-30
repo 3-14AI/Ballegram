@@ -3,7 +3,7 @@ import ballegram.common;
 import ballegram.auth;
 
 configurable common:DatabaseConfig databaseConfig = ?;
-configurable auth:AuthConfig authConfig = ?;
+configurable auth:AuthConfig & readonly authConfig = ?;
 
 final common:Database db = check new(databaseConfig);
 
