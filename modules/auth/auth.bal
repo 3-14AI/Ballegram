@@ -117,9 +117,8 @@ public function login(common:Database db, string username, string password, Auth
         expTime: config.jwtExpTime,
         customClaims: { "uid": result.id },
         signatureConfig: {
-            config: {
-                key: config.jwtSecret
-            }
+            algorithm: jwt:HS256,
+            config: config.jwtSecret
         }
     };
     string token = check jwt:issue(issuerConfig);
@@ -135,9 +134,7 @@ public function getJwtValidatorConfig(AuthConfig config) returns http:JwtValidat
         issuer: config.jwtIssuer,
         audience: config.jwtAudience,
         signatureConfig: {
-            config: {
-                key: config.jwtSecret
-            }
+            secret: config.jwtSecret
         }
     };
 }
