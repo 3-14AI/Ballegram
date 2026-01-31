@@ -19,17 +19,17 @@ This file tracks the progress of the **Ballegram** project. Tasks are broken dow
     - [x] Implement DB client wrapper in `common` (currently exists but verify completeness).
     - [x] Implement error types.
 
-## 🟡 Phase 2: Authentication Module (Next Up)
+## 🟢 Phase 2: Authentication Module (Completed)
 - [x] **User Management**
     - [x] Define `User` record/entity.
     - [x] Implement `register` function (password hashing).
 - [x] **Security**
     - [x] Implement `login` function (JWT generation).
     - [x] Implement JWT validation middleware.
-- [ ] **API**
-    - [ ] Connect `auth` service endpoints to implementation.
+- [x] **API**
+    - [x] Connect `auth` service endpoints to implementation.
 
-## 🔵 Phase 3: Chat Module
+## 🟡 Phase 3: Chat Module (Next Up)
 - [ ] **Chat Core**
     - [ ] Define `Chat` and `Message` records.
     - [ ] Implement `createChat` DB logic.

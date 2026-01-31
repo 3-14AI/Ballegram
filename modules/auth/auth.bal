@@ -50,7 +50,7 @@ public type AuthConfig record {|
 # + email - The email address
 # + password - The password
 # + return - The created User or error
-public function register(common:Database db, string username, string email, string password) returns User|error {
+public isolated function register(common:Database db, string username, string email, string password) returns User|error {
     // Generate a random salt using UUID
     string salt = uuid:createType4AsString();
 
@@ -78,7 +78,7 @@ public function register(common:Database db, string username, string email, stri
 # + password - The password
 # + config - The authentication configuration
 # + return - JWT token or error
-public function login(common:Database db, string username, string password, AuthConfig config) returns string|error {
+public isolated function login(common:Database db, string username, string password, AuthConfig config) returns string|error {
     sql:Client dbClient = db.db;
 
     // We need to fetch all fields to map to UserEntity
@@ -129,7 +129,7 @@ public function login(common:Database db, string username, string password, Auth
 #
 # + config - The authentication configuration
 # + return - The JWT validator configuration
-public function getJwtValidatorConfig(AuthConfig config) returns http:JwtValidatorConfig {
+public isolated function getJwtValidatorConfig(AuthConfig config) returns http:JwtValidatorConfig {
     return {
         issuer: config.jwtIssuer,
         audience: config.jwtAudience,
@@ -144,7 +144,7 @@ public function getJwtValidatorConfig(AuthConfig config) returns http:JwtValidat
 # + password - The password to hash
 # + salt - The salt
 # + return - The hex encoded hash or error
-function hashPassword(string password, string salt) returns string|error {
+isolated function hashPassword(string password, string salt) returns string|error {
     byte[] passwordBytes = password.toBytes();
     byte[] saltBytes = salt.toBytes();
 
