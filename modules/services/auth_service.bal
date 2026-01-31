@@ -7,6 +7,13 @@ type RegisterRequest record {|
     string password;
 |};
 
+type RegisterResponse record {|
+    int id;
+    string username;
+    string? email;
+    string created_at;
+|};
+
 type LoginRequest record {|
     string username;
     string password;
@@ -28,7 +35,15 @@ service /auth on ep {
             // In a real app, check for unique constraint violation
             return <http:InternalServerError> { body: user.message() };
         }
-        return <http:Created> { body: user };
+
+        RegisterResponse response = {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            created_at: user.created_at.toString()
+        };
+
+        return <http:Created> { body: response };
     }
 
     isolated resource function post login(@http:Payload LoginRequest req) returns LoginResponse|http:Unauthorized|http:BadRequest {
