@@ -69,7 +69,9 @@ public isolated function register(DbClient db, string username, string email, st
                                     RETURNING id, username, email, created_at`;
 
     // Execute query and map result to User type
-    User user = check db->queryRow(query);
+    // Since DbClient returns record{}, we must cast it to User
+    record {} result = check db->queryRow(query);
+    User user = check result.cloneWithType(User);
 
     return user;
 }
@@ -86,7 +88,7 @@ public isolated function login(DbClient db, string username, string password, Au
     sql:ParameterizedQuery query = `SELECT id, username, email, created_at, password_hash
                                     FROM users WHERE username = ${username}`;
 
-    UserEntity|sql:Error result = db->queryRow(query);
+    record {}|sql:Error result = db->queryRow(query);
 
     if result is sql:Error {
          if result is sql:NoRowsError {
@@ -95,8 +97,11 @@ public isolated function login(DbClient db, string username, string password, Au
          return result;
     }
 
+    // Map result to UserEntity
+    UserEntity userEntity = check result.cloneWithType(UserEntity);
+
     // Verify password
-    string storedPassword = result.password_hash;
+    string storedPassword = userEntity.password_hash;
     int? delimiterIndex = storedPassword.indexOf(":");
     if delimiterIndex is () {
         return error("Invalid stored password format");
@@ -116,7 +121,7 @@ public isolated function login(DbClient db, string username, string password, Au
         issuer: config.jwtIssuer,
         audience: config.jwtAudience,
         expTime: config.jwtExpTime,
-        customClaims: { "uid": result.id },
+        customClaims: { "uid": userEntity.id },
         signatureConfig: {
             algorithm: jwt:HS256,
             config: config.jwtSecret

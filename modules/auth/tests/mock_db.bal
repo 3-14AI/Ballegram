@@ -10,7 +10,7 @@ public isolated client class MockDbClient {
         self.response = response;
     }
 
-    public isolated remote function queryRow(sql:ParameterizedQuery|string sqlQuery, typedesc<record {}>? rowType = ()) returns record {}|sql:Error {
+    isolated remote function queryRow(sql:ParameterizedQuery|string sqlQuery, typedesc<record {}>? rowType = ()) returns record {}|sql:Error {
         // We simply return the configured response.
         // The test case is responsible for configuring the correct response for the specific call it expects.
         return self.response;
