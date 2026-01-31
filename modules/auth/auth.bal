@@ -44,7 +44,7 @@ public type AuthConfig record {|
 
 # Interface for Database Client to allow mocking
 public type DbClient client object {
-    isolated remote function queryRow(sql:ParameterizedQuery|string sqlQuery, typedesc<record {}>? rowType = ()) returns record {}|sql:Error;
+    isolated remote function queryRow(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns record {}|sql:Error;
 };
 
 # Registers a new user.

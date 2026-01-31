@@ -17,8 +17,8 @@ function testRegisterSuccess() returns error? {
         email: "alice@example.com",
         created_at: time:utcNow()
     };
-    // Mock returns the user on INSERT
-    MockDbClient mockDb = new(expectedUser);
+    // Mock returns the user on INSERT. Using cloneReadOnly() for isolation safety.
+    MockDbClient mockDb = new(expectedUser.cloneReadOnly());
 
     User|error result = register(mockDb, "alice", "alice@example.com", "password123");
 
@@ -56,7 +56,7 @@ function testLoginSuccess() returns error? {
         created_at: time:utcNow(),
         password_hash: stored
     };
-    MockDbClient mockDb = new(userEntity);
+    MockDbClient mockDb = new(userEntity.cloneReadOnly());
 
     string|error token = login(mockDb, "bob", "password123", authConfig);
 
@@ -88,7 +88,7 @@ function testLoginWrongPassword() returns error? {
         created_at: time:utcNow(),
         password_hash: stored
     };
-    MockDbClient mockDb = new(userEntity);
+    MockDbClient mockDb = new(userEntity.cloneReadOnly());
 
     // Attempt login with wrong password
     string|error result = login(mockDb, "charlie", "wrongpass", authConfig);
@@ -124,7 +124,7 @@ function testLoginInvalidStoredFormat() returns error? {
         created_at: time:utcNow(),
         password_hash: "invalidformatstring"
     };
-    MockDbClient mockDb = new(userEntity);
+    MockDbClient mockDb = new(userEntity.cloneReadOnly());
 
     string|error result = login(mockDb, "eve", "pass", authConfig);
 

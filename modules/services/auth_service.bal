@@ -34,7 +34,7 @@ public isolated client class RealDbClient {
         self.db = db;
     }
 
-    isolated remote function queryRow(sql:ParameterizedQuery|string sqlQuery, typedesc<record {}>? rowType = ()) returns record {}|sql:Error {
+    isolated remote function queryRow(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns record {}|sql:Error {
          // Delegate to the real client
          // Note: postgresql:Client.queryRow takes a typedesc.
          // We must handle the optional rowType from the interface.
