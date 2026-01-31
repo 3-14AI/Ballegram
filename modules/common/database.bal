@@ -14,7 +14,7 @@ public isolated client class Database {
         );
     }
 
-    public isolated remote function queryRow(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns record {}|sql:Error {
+    isolated remote function queryRow(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns record {}|sql:Error {
          if rowType is typedesc<record {}> {
              return self.db->queryRow(sqlQuery, rowType);
          }
