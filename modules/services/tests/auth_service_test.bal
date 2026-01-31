@@ -8,7 +8,7 @@ http:Client authClient = check new("http://localhost:9090/auth");
 
 // Mocking the auth:register function
 @test:Mock { moduleName: "ballegram.auth", functionName: "register" }
-function mockRegister(auth:DbClient db, string username, string email, string password) returns auth:User|error {
+isolated function mockRegister(auth:DbClient db, string username, string email, string password) returns auth:User|error {
     if username == "register_error" {
         return error("Registration failed");
     }
@@ -22,7 +22,7 @@ function mockRegister(auth:DbClient db, string username, string email, string pa
 
 // Mocking the auth:login function
 @test:Mock { moduleName: "ballegram.auth", functionName: "login" }
-function mockLogin(auth:DbClient db, string username, string password, auth:AuthConfig config) returns string|error {
+isolated function mockLogin(auth:DbClient db, string username, string password, auth:AuthConfig config) returns string|error {
     if username == "login_error" {
         return error("Invalid credentials");
     }

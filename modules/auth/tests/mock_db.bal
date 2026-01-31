@@ -1,6 +1,6 @@
 import ballerina/sql;
 
-public client class MockDbClient {
+public isolated client class MockDbClient {
     *DbClient;
 
     private final record{}|sql:Error response;
