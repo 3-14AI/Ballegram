@@ -4,7 +4,6 @@ import ballerina/jwt;
 import ballerina/sql;
 import ballerina/time;
 import ballerina/uuid;
-import ballegram.common;
 
 // PBKDF2 Constants
 const int ITERATIONS = 10000;
@@ -43,6 +42,11 @@ public type AuthConfig record {|
     decimal jwtExpTime;
 |};
 
+# Interface for Database Client to allow mocking
+public type DbClient client object {
+    isolated remote function queryRow(sql:ParameterizedQuery|string sqlQuery, typedesc<record {}>? rowType = ()) returns record {}|sql:Error;
+};
+
 # Registers a new user.
 #
 # + db - The database client
@@ -50,7 +54,7 @@ public type AuthConfig record {|
 # + email - The email address
 # + password - The password
 # + return - The created User or error
-public isolated function register(common:Database db, string username, string email, string password) returns User|error {
+public isolated function register(DbClient db, string username, string email, string password) returns User|error {
     // Generate a random salt using UUID
     string salt = uuid:createType4AsString();
 
@@ -65,8 +69,7 @@ public isolated function register(common:Database db, string username, string em
                                     RETURNING id, username, email, created_at`;
 
     // Execute query and map result to User type
-    sql:Client dbClient = db.db;
-    User user = check dbClient->queryRow(query);
+    User user = check db->queryRow(query);
 
     return user;
 }
@@ -78,14 +81,12 @@ public isolated function register(common:Database db, string username, string em
 # + password - The password
 # + config - The authentication configuration
 # + return - JWT token or error
-public isolated function login(common:Database db, string username, string password, AuthConfig config) returns string|error {
-    sql:Client dbClient = db.db;
-
+public isolated function login(DbClient db, string username, string password, AuthConfig config) returns string|error {
     // We need to fetch all fields to map to UserEntity
     sql:ParameterizedQuery query = `SELECT id, username, email, created_at, password_hash
                                     FROM users WHERE username = ${username}`;
 
-    UserEntity|sql:Error result = dbClient->queryRow(query);
+    UserEntity|sql:Error result = db->queryRow(query);
 
     if result is sql:Error {
          if result is sql:NoRowsError {

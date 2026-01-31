@@ -30,7 +30,8 @@ service /auth on ep {
              return <http:BadRequest> { body: "Missing required fields" };
         }
 
-        auth:User|error user = auth:register(db, req.username, req.email, req.password);
+        // Pass db.db (the sql:Client) instead of the wrapper
+        auth:User|error user = auth:register(db.db, req.username, req.email, req.password);
         if user is error {
             // In a real app, check for unique constraint violation
             return <http:InternalServerError> { body: user.message() };
@@ -51,7 +52,8 @@ service /auth on ep {
             return <http:BadRequest> { body: "Missing required fields" };
         }
 
-        string|error token = auth:login(db, req.username, req.password, authConfig);
+        // Pass db.db (the sql:Client) instead of the wrapper
+        string|error token = auth:login(db.db, req.username, req.password, authConfig);
         if token is error {
             return <http:Unauthorized> { body: "Invalid credentials" };
         }
