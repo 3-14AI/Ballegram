@@ -2,12 +2,12 @@ import ballerina/http;
 import ballegram.common;
 import ballegram.auth;
 
-// Provide default dummy values to allow module initialization during tests
+// Provide default values that match docker-compose.yml to ensure container starts successfully
 configurable common:DatabaseConfig databaseConfig = {
     host: "localhost",
     port: 5432,
-    user: "postgres",
-    password: "dummy",
+    user: "user",
+    password: "password",
     database: "ballegram"
 };
 
