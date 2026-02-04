@@ -30,6 +30,8 @@ service /auth on ep {
              return <http:BadRequest> { body: "Missing required fields" };
         }
 
+        // Pass the global db object directly.
+        // It now satisfies the DbClient interface.
         auth:User|error user = auth:register(db, req.username, req.email, req.password);
         if user is error {
             // In a real app, check for unique constraint violation
@@ -51,6 +53,8 @@ service /auth on ep {
             return <http:BadRequest> { body: "Missing required fields" };
         }
 
+        // Pass the global db object directly.
+        // It now satisfies the DbClient interface.
         string|error token = auth:login(db, req.username, req.password, authConfig);
         if token is error {
             return <http:Unauthorized> { body: "Invalid credentials" };
