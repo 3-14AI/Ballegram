@@ -20,4 +20,11 @@ public isolated client class Database {
          }
          return self.db->queryRow(sqlQuery);
     }
+
+    isolated remote function query(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns stream<record {}, sql:Error?> {
+        if rowType is typedesc<record {}> {
+            return self.db->query(sqlQuery, rowType);
+        }
+        return self.db->query(sqlQuery);
+    }
 }

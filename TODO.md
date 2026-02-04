@@ -29,12 +29,12 @@ This file tracks the progress of the **Ballegram** project. Tasks are broken dow
 - [x] **API**
     - [x] Connect `auth` service endpoints to implementation.
 
-## 🟡 Phase 3: Chat Module (Next Up)
-- [ ] **Chat Core**
-    - [ ] Define `Chat` and `Message` records.
-    - [ ] Implement `createChat` DB logic.
-    - [ ] Implement `saveMessage` DB logic.
-    - [ ] Implement `getChatHistory`.
+## 🟡 Phase 3: Chat Module (In Progress)
+- [x] **Chat Core**
+    - [x] Define `Chat` and `Message` records.
+    - [x] Implement `createChat` DB logic.
+    - [x] Implement `saveMessage` DB logic.
+    - [x] Implement `getChatHistory`.
 - [ ] **Real-time**
     - [ ] Implement WebSocket listener.
     - [ ] Implement connection management (User -> Connection map).
