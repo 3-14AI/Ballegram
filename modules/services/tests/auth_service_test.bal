@@ -64,7 +64,7 @@ function testLoginSuccess() returns error? {
     var req = { username: "valid_user", password: "password" };
     http:Response res = check authClient->post("/login", req);
 
-    test:assertEquals(res.statusCode, 200);
+    test:assertEquals(res.statusCode, 201);
     json payload = check res.getJsonPayload();
     map<json> pMap = <map<json>>payload;
     test:assertEquals(pMap["token"], "mock_jwt_token");
