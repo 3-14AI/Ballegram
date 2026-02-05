@@ -28,11 +28,11 @@ public isolated client class MockDbClient {
     }
 
     isolated remote function query(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns stream<record {}, sql:Error?> {
-         MockStream mockStream;
+         record{}[] & readonly results;
          lock {
-             mockStream = new MockStream(self.queryResults);
+             results = self.queryResults;
          }
-         return new stream<record {}, sql:Error?>(mockStream);
+         return new stream<record {}, sql:Error?>(new MockStream(results));
     }
 }
 
