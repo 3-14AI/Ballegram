@@ -54,12 +54,16 @@ public isolated class MockMessageStream {
     }
 
     public isolated function next() returns record {| Message value; |}|sql:Error? {
+        Message & readonly|() result = ();
         lock {
             if self.index < self.messages.length() {
-                Message m = self.messages[self.index];
+                result = self.messages[self.index];
                 self.index += 1;
-                return { value: m };
             }
+        }
+
+        if result is Message {
+            return { value: result };
         }
         return ();
     }
@@ -74,12 +78,16 @@ public isolated class MockGenericStream {
     }
 
     public isolated function next() returns record {| record {} value; |}|sql:Error? {
+        record {} & readonly|() result = ();
         lock {
             if self.index < self.records.length() {
-                record {} m = self.records[self.index];
+                result = self.records[self.index];
                 self.index += 1;
-                return { value: m };
             }
+        }
+
+        if result is record {} {
+            return { value: result };
         }
         return ();
     }
