@@ -4,42 +4,52 @@ public isolated client class MockDbClient {
     *DbClient;
 
     private final (record{} & readonly)|sql:Error? queryRowResponse;
-    private final stream<record {}, sql:Error?>? queryResponse;
+    private final record{}[] & readonly queryResults;
 
     public function init(
         (record{} & readonly)|sql:Error? queryRowResponse = (),
-        stream<record {}, sql:Error?>? queryResponse = ()
+        record{}[] & readonly queryResults = []
     ) {
         self.queryRowResponse = queryRowResponse;
-        self.queryResponse = queryResponse;
+        self.queryResults = queryResults;
     }
 
     isolated remote function queryRow(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns record {}|sql:Error {
-        if self.queryRowResponse is () {
-             return error sql:Error("Mock not configured for queryRow");
+        lock {
+            if self.queryRowResponse is () {
+                 return error sql:Error("Mock not configured for queryRow");
+            }
+            var resp = self.queryRowResponse;
+            if resp is () {
+                return error sql:Error("Unexpected null");
+            }
+            return resp;
         }
-        // Safely unwrap the optional
-        var resp = self.queryRowResponse;
-        if resp is () {
-            return error sql:Error("Unexpected null");
-        }
-        return resp;
     }
 
     isolated remote function query(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns stream<record {}, sql:Error?> {
-         if self.queryResponse is () {
-             return new stream<record {}, sql:Error?>(new EmptyStream());
+         lock {
+             return new stream<record {}, sql:Error?>(new MockStream(self.queryResults));
          }
-         var resp = self.queryResponse;
-         if resp is () {
-              return new stream<record {}, sql:Error?>(new EmptyStream());
-         }
-         return resp;
     }
 }
 
-public isolated class EmptyStream {
+public isolated class MockStream {
+    private final record{}[] & readonly messages;
+    private int index = 0;
+
+    public function init(record{}[] & readonly messages) {
+        self.messages = messages;
+    }
+
     public isolated function next() returns record {| record {} value; |}|sql:Error? {
+        lock {
+            if self.index < self.messages.length() {
+                record {} & readonly m = self.messages[self.index];
+                self.index += 1;
+                return { value: m };
+            }
+        }
         return ();
     }
 }

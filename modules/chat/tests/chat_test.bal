@@ -53,10 +53,9 @@ function testGetChatHistory() returns error? {
         id: 2, chat_id: 1, sender_id: 2, content: "Hello", created_at: time:utcNow()
     };
 
-    MockStream mockStreamIterator = new([msg1, msg2]);
-    stream<record{}, sql:Error?> s = new(mockStreamIterator);
-
-    MockDbClient mockDb = new(queryResponse = s);
+    // Pass the array of messages directly. MockDbClient expects record{}[] & readonly.
+    // Message[] is compatible with record{}[]. cloneReadOnly() ensures it is readonly.
+    MockDbClient mockDb = new(queryResults = [msg1, msg2].cloneReadOnly());
 
     stream<Message, error?> history = getChatHistory(mockDb, 1);
 
@@ -74,24 +73,4 @@ function testGetChatHistory() returns error? {
 
     record {| Message value; |}|error? item3 = history.next();
     test:assertTrue(item3 is ());
-}
-
-public isolated class MockStream {
-    private final Message[] messages;
-    private int index = 0;
-
-    public function init(Message[] messages) {
-        self.messages = messages.cloneReadOnly();
-    }
-
-    public isolated function next() returns record {| record {} value; |}|sql:Error? {
-        lock {
-            if self.index < self.messages.length() {
-                Message m = self.messages[self.index];
-                self.index += 1;
-                return { value: m };
-            }
-        }
-        return ();
-    }
 }
