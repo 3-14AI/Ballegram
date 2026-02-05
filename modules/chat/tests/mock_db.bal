@@ -34,26 +34,49 @@ public isolated client class MockDbClient {
          }
 
          if rowType is typedesc<Message> {
+             // We know the tests pass compatible records, so we cast to Message[]
+             // cloneWithType is safer but for array casting in tests, simple cast or reconstruction works.
+             // Since results is record{}[] & readonly, we cast it to Message[] & readonly
              Message[] & readonly msgs = <Message[] & readonly>results;
-             return new stream<Message, sql:Error?>(new MockStream<Message>(msgs));
+             return new stream<Message, sql:Error?>(new MockMessageStream(msgs));
          }
 
-         return new stream<record {}, sql:Error?>(new MockStream<record {}>(results));
+         return new stream<record {}, sql:Error?>(new MockGenericStream(results));
     }
 }
 
-public isolated class MockStream<T> {
-    private final T[] & readonly messages;
+public isolated class MockMessageStream {
+    private final Message[] & readonly messages;
     private int index = 0;
 
-    public isolated function init(T[] & readonly messages) {
+    public isolated function init(Message[] & readonly messages) {
         self.messages = messages;
     }
 
-    public isolated function next() returns record {| T value; |}|sql:Error? {
+    public isolated function next() returns record {| Message value; |}|sql:Error? {
         lock {
             if self.index < self.messages.length() {
-                T m = self.messages[self.index];
+                Message m = self.messages[self.index];
+                self.index += 1;
+                return { value: m };
+            }
+        }
+        return ();
+    }
+}
+
+public isolated class MockGenericStream {
+    private final record{}[] & readonly records;
+    private int index = 0;
+
+    public isolated function init(record{}[] & readonly records) {
+        self.records = records;
+    }
+
+    public isolated function next() returns record {| record {} value; |}|sql:Error? {
+        lock {
+            if self.index < self.records.length() {
+                record {} m = self.records[self.index];
                 self.index += 1;
                 return { value: m };
             }
