@@ -40,7 +40,7 @@ public isolated class MockStream {
     private final record{}[] & readonly messages;
     private int index = 0;
 
-    public function init(record{}[] & readonly messages) {
+    public isolated function init(record{}[] & readonly messages) {
         self.messages = messages;
     }
 
