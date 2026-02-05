@@ -1,6 +1,5 @@
 import ballerina/test;
 import ballerina/time;
-import ballerina/sql;
 
 @test:Config {}
 function testCreateChat() returns error? {
