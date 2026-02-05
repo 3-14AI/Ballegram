@@ -32,22 +32,28 @@ public isolated client class MockDbClient {
          lock {
              results = self.queryResults;
          }
-         return new stream<record {}, sql:Error?>(new MockStream(results));
+
+         if rowType is typedesc<Message> {
+             Message[] & readonly msgs = <Message[] & readonly>results;
+             return new stream<Message, sql:Error?>(new MockStream<Message>(msgs));
+         }
+
+         return new stream<record {}, sql:Error?>(new MockStream<record {}>(results));
     }
 }
 
-public isolated class MockStream {
-    private final record{}[] & readonly messages;
+public isolated class MockStream<T> {
+    private final T[] & readonly messages;
     private int index = 0;
 
-    public isolated function init(record{}[] & readonly messages) {
+    public isolated function init(T[] & readonly messages) {
         self.messages = messages;
     }
 
-    public isolated function next() returns record {| record {} value; |}|sql:Error? {
+    public isolated function next() returns record {| T value; |}|sql:Error? {
         lock {
             if self.index < self.messages.length() {
-                record {} & readonly m = self.messages[self.index];
+                T m = self.messages[self.index];
                 self.index += 1;
                 return { value: m };
             }
