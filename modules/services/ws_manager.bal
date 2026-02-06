@@ -32,7 +32,7 @@ public isolated class ConnectionManager {
         }
     }
 
-    public isolated function broadcast(int[] userIds, anydata message) {
+    public isolated function broadcast(int[] userIds, anydata & readonly message) {
         foreach int userId in userIds {
             lock {
                 string key = userId.toString();
