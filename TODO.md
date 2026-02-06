@@ -35,10 +35,10 @@ This file tracks the progress of the **Ballegram** project. Tasks are broken dow
     - [x] Implement `createChat` DB logic.
     - [x] Implement `saveMessage` DB logic.
     - [x] Implement `getChatHistory`.
-- [ ] **Real-time**
-    - [ ] Implement WebSocket listener.
-    - [ ] Implement connection management (User -> Connection map).
-    - [ ] Implement message broadcasting.
+- [x] **Real-time**
+    - [x] Implement WebSocket listener.
+    - [x] Implement connection management (User -> Connection map).
+    - [x] Implement message broadcasting.
 
 ## 🟣 Phase 4: Social Module
 - [ ] **Media**
