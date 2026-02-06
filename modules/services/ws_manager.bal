@@ -40,7 +40,8 @@ public isolated class ConnectionManager {
                     websocket:Caller[] callers = self.connections.get(key);
                     foreach websocket:Caller caller in callers {
                          // Ignore errors during broadcast
-                         if caller->writeMessage(message) is error {
+                         error? result = caller->writeMessage(message);
+                         if result is error {
                              // Ignore
                          }
                     }
