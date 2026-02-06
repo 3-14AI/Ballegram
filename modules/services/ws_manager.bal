@@ -34,17 +34,15 @@ public isolated class ConnectionManager {
 
     public isolated function broadcast(int[] userIds, anydata message) {
         foreach int userId in userIds {
-            websocket:Caller[] targetCallers = lock {
+            lock {
                 string key = userId.toString();
                 if self.connections.hasKey(key) {
-                    return self.connections.get(key).clone();
+                    websocket:Caller[] callers = self.connections.get(key);
+                    foreach websocket:Caller caller in callers {
+                         // Ignore errors during broadcast
+                         _ = caller->writeMessage(message);
+                    }
                 }
-                return [];
-            };
-
-            foreach websocket:Caller caller in targetCallers {
-                // Ignore errors during broadcast
-                var _ = caller->writeMessage(message);
             }
         }
     }
