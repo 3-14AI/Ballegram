@@ -19,9 +19,11 @@ public isolated class ConnectionManager {
             string key = userId.toString();
             if self.connections.hasKey(key) {
                 websocket:Caller[] callers = self.connections.get(key);
-                int? index = callers.indexOf(caller);
-                if index is int {
-                    _ = callers.remove(index);
+                foreach int i in 0 ..< callers.length() {
+                    if callers[i] === caller {
+                        _ = callers.remove(i);
+                        break;
+                    }
                 }
                 if callers.length() == 0 {
                     _ = self.connections.remove(key);

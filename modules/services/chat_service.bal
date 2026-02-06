@@ -30,7 +30,7 @@ service /chat on ep {
             issuer: authConfig.jwtIssuer,
             audience: authConfig.jwtAudience,
             signatureConfig: {
-                config: authConfig.jwtSecret
+                secret: authConfig.jwtSecret
             }
         };
 
@@ -41,7 +41,7 @@ service /chat on ep {
         }
 
         // 2. Extract User ID
-        var uid = payload.customClaims["uid"];
+        var uid = payload["uid"];
         int userId;
 
         if uid is int {
