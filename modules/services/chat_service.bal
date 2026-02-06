@@ -1,7 +1,6 @@
 import ballerina/websocket;
 import ballerina/http;
 import ballerina/jwt;
-import ballegram.auth;
 import ballegram.chat;
 
 final ConnectionManager connectionManager = new;
