@@ -102,6 +102,6 @@ service class ChatService {
              return;
         }
 
-        connectionManager.broadcast(participants, savedMsg);
+        connectionManager.broadcast(participants, savedMsg.cloneReadOnly());
     }
 }
