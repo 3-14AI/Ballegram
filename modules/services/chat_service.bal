@@ -12,11 +12,11 @@ type IncomingMessage record {|
 
 service /chat on ep {
 
-    resource function get . (http:Request req) returns websocket:Service|websocket:UpgradeError {
+    resource function get . (http:Request req) returns websocket:Service|error {
         // 1. Authenticate
         string|http:HeaderNotFoundError header = req.getHeader("Authorization");
         if header is http:HeaderNotFoundError {
-             return error websocket:UpgradeError("Missing Authorization header");
+             return error("Missing Authorization header");
         }
 
         string token = header;
@@ -36,7 +36,7 @@ service /chat on ep {
         jwt:Payload|error payload = jwt:validate(token, validatorConfig);
 
         if payload is error {
-            return error websocket:UpgradeError("Invalid token: " + payload.message());
+            return error("Invalid token: " + payload.message());
         }
 
         // 2. Extract User ID
@@ -50,7 +50,7 @@ service /chat on ep {
         } else if uid is decimal {
              userId = <int>uid;
         } else {
-             return error websocket:UpgradeError("Invalid user ID in token");
+             return error("Invalid user ID in token");
         }
 
         return new ChatService(userId);
