@@ -46,8 +46,8 @@ This file tracks the progress of the **Ballegram** project. Tasks are broken dow
 - [x] **Posts**
     - [x] Define `Post` record.
     - [x] Implement `createPost`.
-- [ ] **Feed**
-    - [ ] Implement `getFeed` (query logic).
+- [x] **Feed**
+    - [x] Implement `getFeed` (query logic).
 
 ## ⚪ Phase 5: Interaction & Polish
 - [ ] **Interactions**

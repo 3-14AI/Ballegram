@@ -4,6 +4,11 @@ import ballerina/time;
 
 public isolated client class MockDbClient {
     *DbClient;
+    private final record {}[] & readonly queryResults;
+
+    public isolated function init(record {}[] queryResults = []) {
+        self.queryResults = queryResults.cloneReadOnly();
+    }
 
     isolated remote function queryRow(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns record {}|sql:Error {
         // Mock returning a created post record
@@ -18,13 +23,26 @@ public isolated client class MockDbClient {
     }
 
     isolated remote function query(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns stream<record {}, sql:Error?> {
-        // Not used in createPost, returning empty stream
-        return new stream<record {}, sql:Error?>(new MockStream());
+        return new stream<record {}, sql:Error?>(new MockStream(self.queryResults));
     }
 }
 
 public isolated class MockStream {
+    private final record {}[] & readonly records;
+    private int index = 0;
+
+    public isolated function init(record {}[] & readonly records) {
+        self.records = records;
+    }
+
     public isolated function next() returns record {| record {} value; |}|sql:Error? {
+        lock {
+            if self.index < self.records.length() {
+                record {} val = self.records[self.index];
+                self.index += 1;
+                return {value: val};
+            }
+        }
         return ();
     }
 }
@@ -56,4 +74,32 @@ function testCreatePostValidation() {
 
     Post|error result = createPost(db, 1, req);
     test:assertTrue(result is error, "Should return error if content and media are missing");
+}
+
+@test:Config {}
+function testGetFeed() returns error? {
+    record {}[] mockData = [
+        {
+            "id": 2,
+            "user_id": 1,
+            "content": "Newest Post",
+            "media_url": (),
+            "created_at": time:utcNow()
+        },
+        {
+            "id": 1,
+            "user_id": 1,
+            "content": "Old Post",
+            "media_url": (),
+            "created_at": time:utcNow()
+        }
+    ];
+
+    MockDbClient db = new(mockData);
+
+    // Test with default limit/offset
+    Post[] posts = check getFeed(db);
+    test:assertEquals(posts.length(), 2);
+    test:assertEquals(posts[0].content, "Newest Post");
+    test:assertEquals(posts[1].content, "Old Post");
 }
