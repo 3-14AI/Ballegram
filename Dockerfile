@@ -7,7 +7,8 @@ COPY target/bin/ballegram.jar /app/ballegram.jar
 
 # Create a non-root user
 RUN useradd -m ballegram && \
-    chown ballegram:ballegram /app/ballegram.jar
+    mkdir -p /app/uploads && \
+    chown -R ballegram:ballegram /app
 
 USER ballegram
 
