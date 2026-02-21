@@ -10,7 +10,7 @@ type IncomingMessage record {|
     string content;
 |};
 
-service /chat on ep {
+service /chat on new websocket:Listener(9091) {
 
     resource function get . (http:Request req) returns websocket:Service|error {
         // 1. Authenticate
