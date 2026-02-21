@@ -5,7 +5,7 @@ import ballerina/time;
 public isolated client class MockDbClient {
     *DbClient;
 
-    public isolated remote function queryRow(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns record {}|sql:Error {
+    isolated remote function queryRow(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns record {}|sql:Error {
         // Mock returning a created post record
         // The values here should match what we expect in the test assertions
         return {
@@ -17,7 +17,7 @@ public isolated client class MockDbClient {
         };
     }
 
-    public isolated remote function query(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns stream<record {}, sql:Error?> {
+    isolated remote function query(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns stream<record {}, sql:Error?> {
         // Not used in createPost, returning empty stream
         return new stream<record {}, sql:Error?>(new MockStream());
     }
