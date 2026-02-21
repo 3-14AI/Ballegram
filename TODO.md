@@ -40,12 +40,12 @@ This file tracks the progress of the **Ballegram** project. Tasks are broken dow
     - [x] Implement connection management (User -> Connection map).
     - [x] Implement message broadcasting.
 
-## 🟣 Phase 4: Social Module
-- [ ] **Media**
-    - [ ] Implement file upload handling (S3/Local).
-- [ ] **Posts**
-    - [ ] Define `Post` record.
-    - [ ] Implement `createPost`.
+## 🟣 Phase 4: Social Module (In Progress)
+- [x] **Media**
+    - [x] Implement file upload handling (S3/Local).
+- [x] **Posts**
+    - [x] Define `Post` record.
+    - [x] Implement `createPost`.
 - [ ] **Feed**
     - [ ] Implement `getFeed` (query logic).
 
