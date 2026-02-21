@@ -72,3 +72,27 @@ public isolated function getChatHistory(DbClient db, int chatId) returns stream<
     // Cast to the expected stream type
     return <stream<Message, error?>>result;
 }
+
+# Retrieves the list of participants in a chat.
+#
+# + db - The database client
+# + chatId - The chat ID
+# + return - A list of user IDs or error
+public isolated function getChatParticipants(DbClient db, int chatId) returns int[]|error {
+    sql:ParameterizedQuery query = `
+        SELECT user_id
+        FROM chat_participants
+        WHERE chat_id = ${chatId}
+    `;
+
+    stream<record {}, sql:Error?> resultStream = db->query(query);
+    int[] participantIds = [];
+
+    check from record {} row in resultStream
+        do {
+            record {| int user_id; |} item = check row.cloneWithType();
+            participantIds.push(item.user_id);
+        };
+
+    return participantIds;
+}
