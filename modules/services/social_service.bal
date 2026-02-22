@@ -153,4 +153,20 @@ service /social on ep {
         }
         return following;
     }
+
+    isolated resource function get users(string q) returns social:UserSummary[]|http:InternalServerError {
+        auth:User[]|error users = auth:searchUsers(db, q);
+        if users is error {
+            return <http:InternalServerError> { body: users.message() };
+        }
+
+        social:UserSummary[] summaries = [];
+        foreach var user in users {
+            summaries.push({
+                id: user.id,
+                username: user.username
+            });
+        }
+        return summaries;
+    }
 }

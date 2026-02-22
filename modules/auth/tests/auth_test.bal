@@ -133,3 +133,33 @@ function testLoginInvalidStoredFormat() returns error? {
         test:assertEquals(result.message(), "Invalid stored password format");
     }
 }
+
+@test:Config {}
+function testSearchUsers() returns error? {
+    // Explicitly create GenericRecord[] to avoid runtime issues with typedesc/generics in mocks
+    GenericRecord[] mockUsersRec = [
+        {
+            "id": 1,
+            "username": "alice",
+            "email": "alice@example.com",
+            "created_at": time:utcNow()
+        },
+        {
+            "id": 2,
+            "username": "bob",
+            "email": "bob@example.com",
+            "created_at": time:utcNow()
+        }
+    ];
+
+    MockDbClient mockDb = new(error("Not implemented"), mockUsersRec.cloneReadOnly());
+
+    User[]|error result = searchUsers(mockDb, "test");
+
+    test:assertTrue(result is User[]);
+    if result is User[] {
+        test:assertEquals(result.length(), 2);
+        test:assertEquals(result[0].username, "alice");
+        test:assertEquals(result[1].username, "bob");
+    }
+}
