@@ -136,27 +136,23 @@ function testLoginInvalidStoredFormat() returns error? {
 
 @test:Config {}
 function testSearchUsers() returns error? {
-    User[] mockUsers = [
+    // Explicitly create record{}[] to avoid runtime issues with typedesc/generics in mocks
+    record{}[] mockUsersRec = [
         {
-            id: 1,
-            username: "alice",
-            email: "alice@example.com",
-            created_at: time:utcNow()
+            "id": 1,
+            "username": "alice",
+            "email": "alice@example.com",
+            "created_at": time:utcNow()
         },
         {
-            id: 2,
-            username: "bob",
-            email: "bob@example.com",
-            created_at: time:utcNow()
+            "id": 2,
+            "username": "bob",
+            "email": "bob@example.com",
+            "created_at": time:utcNow()
         }
     ];
 
-    // MockDbClient takes record{}[] & readonly. User[] is compatible with record{}[] but needs cast or covariance check.
-    // cloneReadOnly() returns User[] & readonly.
-    // We pass it to MockDbClient which expects record{}[] & readonly.
-    // Since User is subtype of record{}, User[] is subtype of record{}[].
-
-    MockDbClient mockDb = new(error("Not implemented"), mockUsers.cloneReadOnly());
+    MockDbClient mockDb = new(error("Not implemented"), mockUsersRec.cloneReadOnly());
 
     User[]|error result = searchUsers(mockDb, "test");
 
