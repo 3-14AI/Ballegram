@@ -2,11 +2,13 @@ import ballerina/sql;
 import ballerina/test;
 import ballerina/time;
 
+public type MockRecord record {};
+
 public isolated client class MockDbClient {
     *DbClient;
-    private final record {}[] & readonly queryResults;
+    private final MockRecord[] & readonly queryResults;
 
-    public isolated function init(record {}[] queryResults = []) {
+    public isolated function init(MockRecord[] queryResults = []) {
         self.queryResults = queryResults.cloneReadOnly();
     }
 
@@ -28,10 +30,10 @@ public isolated client class MockDbClient {
 }
 
 public isolated class MockStream {
-    private final record {}[] & readonly records;
+    private final MockRecord[] & readonly records;
     private int index = 0;
 
-    public isolated function init(record {}[] & readonly records) {
+    public isolated function init(MockRecord[] & readonly records) {
         self.records = records;
     }
 
@@ -81,7 +83,7 @@ function testCreatePostValidation() {
 
 @test:Config {}
 function testGetFeed() returns error? {
-    record {}[] mockData = [
+    MockRecord[] mockData = [
         {
             "id": 2,
             "user_id": 1,
