@@ -22,7 +22,7 @@ isolated function getUserId(http:Request req) returns int|error {
     jwt:ValidatorConfig validatorConfig = auth:getJwtValidatorConfig(authConfig);
     jwt:Payload payload = check jwt:validate(token, validatorConfig);
 
-    var uid = payload.customClaims["uid"];
+    var uid = payload["uid"];
     if uid is int {
         return uid;
     }
