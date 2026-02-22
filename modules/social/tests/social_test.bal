@@ -47,7 +47,7 @@ public isolated class MockStream {
 
 @test:Config {}
 function testLikePost() returns error? {
-    MockDbClient db = new([{user_id: 1}]);
+    MockDbClient db = new([{"user_id": 1}]);
     check likePost(db, 1, 1);
 }
 
@@ -59,7 +59,7 @@ function testLikePostAlreadyLiked() returns error? {
 
 @test:Config {}
 function testUnlikePost() returns error? {
-    MockDbClient db = new([{user_id: 1}]);
+    MockDbClient db = new([{"user_id": 1}]);
     check unlikePost(db, 1, 1);
 }
 
@@ -67,11 +67,11 @@ function testUnlikePost() returns error? {
 function testCommentOnPost() returns error? {
     time:Utc now = time:utcNow();
     MockDbClient db = new([{
-        id: 1,
-        user_id: 1,
-        post_id: 1,
-        content: "Test Comment",
-        created_at: now
+        "id": 1,
+        "user_id": 1,
+        "post_id": 1,
+        "content": "Test Comment",
+        "created_at": now
     }]);
 
     Comment comment = check commentOnPost(db, 1, 1, "Test Comment");
@@ -82,12 +82,12 @@ function testCommentOnPost() returns error? {
 function testGetComments() returns error? {
     time:Utc now = time:utcNow();
     MockDbClient db = new([{
-        id: 1,
-        user_id: 1,
-        post_id: 1,
-        content: "Test Comment",
-        created_at: now,
-        username: "testuser"
+        "id": 1,
+        "user_id": 1,
+        "post_id": 1,
+        "content": "Test Comment",
+        "created_at": now,
+        "username": "testuser"
     }]);
 
     CommentWithUser[] comments = check getComments(db, 1);
@@ -97,21 +97,21 @@ function testGetComments() returns error? {
 
 @test:Config {}
 function testFollowUser() returns error? {
-    MockDbClient db = new([{follower_id: 1}]);
+    MockDbClient db = new([{"follower_id": 1}]);
     check followUser(db, 1, 2);
 }
 
 @test:Config {}
 function testUnfollowUser() returns error? {
-    MockDbClient db = new([{follower_id: 1}]);
+    MockDbClient db = new([{"follower_id": 1}]);
     check unfollowUser(db, 1, 2);
 }
 
 @test:Config {}
 function testGetFollowers() returns error? {
     MockDbClient db = new([{
-        id: 1,
-        username: "follower"
+        "id": 1,
+        "username": "follower"
     }]);
 
     UserSummary[] followers = check getFollowers(db, 2);
@@ -122,8 +122,8 @@ function testGetFollowers() returns error? {
 @test:Config {}
 function testGetFollowing() returns error? {
     MockDbClient db = new([{
-        id: 2,
-        username: "following"
+        "id": 2,
+        "username": "following"
     }]);
 
     UserSummary[] following = check getFollowing(db, 1);

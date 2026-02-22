@@ -80,7 +80,8 @@ service /social on ep {
             user_id: comment.user_id,
             post_id: comment.post_id,
             content: comment.content,
-            created_at: comment.created_at.toString()
+            created_at: comment.created_at.toString(),
+            username: () // Explicitly set optional field to nil
         };
         return <http:Created> { body: response };
     }
