@@ -4,8 +4,13 @@ import ballerina/time;
 
 public isolated client class MockDbClient {
     *DbClient;
+    private final GenericRecord[] & readonly queryResults;
 
-    isolated remote function queryRow(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns record {}|sql:Error {
+    public isolated function init(GenericRecord[] queryResults = []) {
+        self.queryResults = queryResults.cloneReadOnly();
+    }
+
+    isolated remote function queryRow(sql:ParameterizedQuery sqlQuery, typedesc<GenericRecord>? rowType = ()) returns GenericRecord|sql:Error {
         // Mock returning a created post record
         // The values here should match what we expect in the test assertions
         return {
@@ -17,14 +22,30 @@ public isolated client class MockDbClient {
         };
     }
 
-    isolated remote function query(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns stream<record {}, sql:Error?> {
-        // Not used in createPost, returning empty stream
-        return new stream<record {}, sql:Error?>(new MockStream());
+    isolated remote function query(sql:ParameterizedQuery sqlQuery, typedesc<GenericRecord>? rowType = ()) returns stream<GenericRecord, sql:Error?> {
+        return new stream<GenericRecord, sql:Error?>(new MockStream(self.queryResults));
     }
 }
 
 public isolated class MockStream {
-    public isolated function next() returns record {| record {} value; |}|sql:Error? {
+    private final GenericRecord[] & readonly records;
+    private int index = 0;
+
+    public isolated function init(GenericRecord[] & readonly records) {
+        self.records = records;
+    }
+
+    public isolated function next() returns record {| GenericRecord value; |}|sql:Error? {
+        GenericRecord? result = ();
+        lock {
+            if self.index < self.records.length() {
+                result = self.records[self.index];
+                self.index += 1;
+            }
+        }
+        if result is GenericRecord {
+            return {value: result};
+        }
         return ();
     }
 }
@@ -56,4 +77,32 @@ function testCreatePostValidation() {
 
     Post|error result = createPost(db, 1, req);
     test:assertTrue(result is error, "Should return error if content and media are missing");
+}
+
+@test:Config {}
+function testGetFeed() returns error? {
+    GenericRecord[] mockData = [
+        {
+            "id": 2,
+            "user_id": 1,
+            "content": "Newest Post",
+            "media_url": (),
+            "created_at": time:utcNow()
+        },
+        {
+            "id": 1,
+            "user_id": 1,
+            "content": "Old Post",
+            "media_url": (),
+            "created_at": time:utcNow()
+        }
+    ];
+
+    MockDbClient db = new(mockData);
+
+    // Test with default limit/offset
+    Post[] posts = check getFeed(db);
+    test:assertEquals(posts.length(), 2);
+    test:assertEquals(posts[0].content, "Newest Post");
+    test:assertEquals(posts[1].content, "Old Post");
 }
