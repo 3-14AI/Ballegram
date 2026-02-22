@@ -2,17 +2,15 @@ import ballerina/sql;
 import ballerina/test;
 import ballerina/time;
 
-public type MockRecord record {};
-
 public isolated client class MockDbClient {
     *DbClient;
-    private final MockRecord[] & readonly queryResults;
+    private final GenericRecord[] & readonly queryResults;
 
-    public isolated function init(MockRecord[] queryResults = []) {
+    public isolated function init(GenericRecord[] queryResults = []) {
         self.queryResults = queryResults.cloneReadOnly();
     }
 
-    isolated remote function queryRow(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns record {}|sql:Error {
+    isolated remote function queryRow(sql:ParameterizedQuery sqlQuery, typedesc<GenericRecord>? rowType = ()) returns GenericRecord|sql:Error {
         // Mock returning a created post record
         // The values here should match what we expect in the test assertions
         return {
@@ -24,28 +22,28 @@ public isolated client class MockDbClient {
         };
     }
 
-    isolated remote function query(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns stream<record {}, sql:Error?> {
-        return new stream<record {}, sql:Error?>(new MockStream(self.queryResults));
+    isolated remote function query(sql:ParameterizedQuery sqlQuery, typedesc<GenericRecord>? rowType = ()) returns stream<GenericRecord, sql:Error?> {
+        return new stream<GenericRecord, sql:Error?>(new MockStream(self.queryResults));
     }
 }
 
 public isolated class MockStream {
-    private final MockRecord[] & readonly records;
+    private final GenericRecord[] & readonly records;
     private int index = 0;
 
-    public isolated function init(MockRecord[] & readonly records) {
+    public isolated function init(GenericRecord[] & readonly records) {
         self.records = records;
     }
 
-    public isolated function next() returns record {| record {} value; |}|sql:Error? {
-        record {}? result = ();
+    public isolated function next() returns record {| GenericRecord value; |}|sql:Error? {
+        GenericRecord? result = ();
         lock {
             if self.index < self.records.length() {
                 result = self.records[self.index];
                 self.index += 1;
             }
         }
-        if result is record {} {
+        if result is GenericRecord {
             return {value: result};
         }
         return ();
@@ -83,7 +81,7 @@ function testCreatePostValidation() {
 
 @test:Config {}
 function testGetFeed() returns error? {
-    MockRecord[] mockData = [
+    GenericRecord[] mockData = [
         {
             "id": 2,
             "user_id": 1,

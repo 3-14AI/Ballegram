@@ -10,7 +10,7 @@ public isolated function createPost(DbClient db, int userId, CreatePostRequest r
         VALUES (${userId}, ${req.content}, ${req.media_url})
         RETURNING id, user_id, content, media_url, created_at
     `;
-    record {} result = check db->queryRow(query);
+    GenericRecord result = check db->queryRow(query);
     return result.cloneWithType(Post);
 }
 
@@ -25,10 +25,10 @@ public isolated function getFeed(DbClient db, int limitCount = 10, int offsetCou
         ORDER BY created_at DESC
         LIMIT ${limitCount} OFFSET ${offsetCount}
     `;
-    stream<record {}, sql:Error?> resultStream = db->query(query);
+    stream<GenericRecord, sql:Error?> resultStream = db->query(query);
 
     Post[] posts = [];
-    check from record {} post in resultStream
+    check from GenericRecord post in resultStream
         do {
             posts.push(check post.cloneWithType(Post));
         };
