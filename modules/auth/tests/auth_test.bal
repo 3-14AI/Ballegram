@@ -133,3 +133,37 @@ function testLoginInvalidStoredFormat() returns error? {
         test:assertEquals(result.message(), "Invalid stored password format");
     }
 }
+
+@test:Config {}
+function testSearchUsers() returns error? {
+    User[] mockUsers = [
+        {
+            id: 1,
+            username: "alice",
+            email: "alice@example.com",
+            created_at: time:utcNow()
+        },
+        {
+            id: 2,
+            username: "bob",
+            email: "bob@example.com",
+            created_at: time:utcNow()
+        }
+    ];
+
+    // MockDbClient takes record{}[] & readonly. User[] is compatible with record{}[] but needs cast or covariance check.
+    // cloneReadOnly() returns User[] & readonly.
+    // We pass it to MockDbClient which expects record{}[] & readonly.
+    // Since User is subtype of record{}, User[] is subtype of record{}[].
+
+    MockDbClient mockDb = new(error("Not implemented"), mockUsers.cloneReadOnly());
+
+    User[]|error result = searchUsers(mockDb, "test");
+
+    test:assertTrue(result is User[]);
+    if result is User[] {
+        test:assertEquals(result.length(), 2);
+        test:assertEquals(result[0].username, "alice");
+        test:assertEquals(result[1].username, "bob");
+    }
+}

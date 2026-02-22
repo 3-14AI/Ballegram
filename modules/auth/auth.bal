@@ -45,7 +45,30 @@ public type AuthConfig record {|
 # Interface for Database Client to allow mocking
 public type DbClient client object {
     isolated remote function queryRow(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns record {}|sql:Error;
+    isolated remote function query(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns stream<record {}, sql:Error?>;
 };
+
+# Search users by username.
+#
+# + db - The database client
+# + query - The search query
+# + return - List of users matching the query
+public isolated function searchUsers(DbClient db, string query) returns User[]|error {
+    string pattern = "%" + query + "%";
+    sql:ParameterizedQuery sqlQuery = `SELECT id, username, email, created_at
+                                    FROM users
+                                    WHERE username ILIKE ${pattern}
+                                    ORDER BY username ASC
+                                    LIMIT 20`;
+    stream<record {}, sql:Error?> resultStream = db->query(sqlQuery);
+
+    User[] users = [];
+    check from record {} row in resultStream
+        do {
+            users.push(check row.cloneWithType(User));
+        };
+    return users;
+}
 
 # Registers a new user.
 #
