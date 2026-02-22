@@ -42,10 +42,14 @@ public type AuthConfig record {|
     decimal jwtExpTime;
 |};
 
+# A generic record type to allow usage in DbClient interface.
+# This prevents anonymous typedesc mismatch errors in tests.
+public type GenericRecord record {};
+
 # Interface for Database Client to allow mocking
 public type DbClient client object {
-    isolated remote function queryRow(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns record {}|sql:Error;
-    isolated remote function query(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns stream<record {}, sql:Error?>;
+    isolated remote function queryRow(sql:ParameterizedQuery sqlQuery, typedesc<GenericRecord>? rowType = ()) returns GenericRecord|sql:Error;
+    isolated remote function query(sql:ParameterizedQuery sqlQuery, typedesc<GenericRecord>? rowType = ()) returns stream<GenericRecord, sql:Error?>;
 };
 
 # Search users by username.
@@ -60,10 +64,10 @@ public isolated function searchUsers(DbClient db, string query) returns User[]|e
                                     WHERE username ILIKE ${pattern}
                                     ORDER BY username ASC
                                     LIMIT 20`;
-    stream<record {}, sql:Error?> resultStream = db->query(sqlQuery);
+    stream<GenericRecord, sql:Error?> resultStream = db->query(sqlQuery);
 
     User[] users = [];
-    check from record {} row in resultStream
+    check from GenericRecord row in resultStream
         do {
             users.push(check row.cloneWithType(User));
         };
@@ -92,8 +96,8 @@ public isolated function register(DbClient db, string username, string email, st
                                     RETURNING id, username, email, created_at`;
 
     // Execute query and map result to User type
-    // Since DbClient returns record{}, we must cast it to User
-    record {} result = check db->queryRow(query);
+    // Since DbClient returns GenericRecord, we must cast it to User
+    GenericRecord result = check db->queryRow(query);
     User user = check result.cloneWithType(User);
 
     return user;
@@ -111,7 +115,7 @@ public isolated function login(DbClient db, string username, string password, Au
     sql:ParameterizedQuery query = `SELECT id, username, email, created_at, password_hash
                                     FROM users WHERE username = ${username}`;
 
-    record {}|sql:Error result = db->queryRow(query);
+    GenericRecord|sql:Error result = db->queryRow(query);
 
     if result is sql:Error {
          if result is sql:NoRowsError {

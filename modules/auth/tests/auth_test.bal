@@ -136,8 +136,8 @@ function testLoginInvalidStoredFormat() returns error? {
 
 @test:Config {}
 function testSearchUsers() returns error? {
-    // Explicitly create record{}[] to avoid runtime issues with typedesc/generics in mocks
-    record{}[] mockUsersRec = [
+    // Explicitly create GenericRecord[] to avoid runtime issues with typedesc/generics in mocks
+    GenericRecord[] mockUsersRec = [
         {
             "id": 1,
             "username": "alice",
