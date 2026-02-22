@@ -50,9 +50,9 @@ This file tracks the progress of the **Ballegram** project. Tasks are broken dow
     - [x] Implement `getFeed` (query logic).
 
 ## ⚪ Phase 5: Interaction & Polish
-- [ ] **Interactions**
-    - [ ] Implement Likes.
-    - [ ] Implement Comments.
-    - [ ] Implement Follow system.
+- [x] **Interactions**
+    - [x] Implement Likes.
+    - [x] Implement Comments.
+    - [x] Implement Follow system.
 - [ ] **Search**
     - [ ] Implement User search.
