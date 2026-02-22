@@ -36,12 +36,15 @@ public isolated class MockStream {
     }
 
     public isolated function next() returns record {| record {} value; |}|sql:Error? {
+        record {}? result = ();
         lock {
             if self.index < self.records.length() {
-                record {} val = self.records[self.index];
+                result = self.records[self.index];
                 self.index += 1;
-                return {value: val};
             }
+        }
+        if result is record {} {
+            return {value: result};
         }
         return ();
     }
