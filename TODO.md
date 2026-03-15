@@ -54,8 +54,8 @@ This file tracks the progress of the **Ballegram** project. Tasks are broken dow
     - [x] Implement Likes.
     - [x] Implement Comments.
     - [x] Implement Follow system.
-- [ ] **Search**
-    - [ ] Implement User search.
+- [x] **Search**
+    - [x] Implement User search.
 
 ## ⚪ Phase 6: Доработки после аудита
 Основываясь на проведенном аудите архитектуры Ballegram, вот подробный TODO-лист для команды бэкенд-разработки. Задачи разбиты по логическим блокам от базовой инфраструктуры до реализации бизнес-логики и новых фичей.
