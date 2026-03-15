@@ -1,51 +1,51 @@
 # Ballegram 📱📸
 
-**Ballegram** is an ambitious project to create a hybrid social platform that merges the speed and privacy of a messenger (like Telegram) with the visual engagement of a social network (like Instagram). The entire backend is engineered using **Ballerina**, taking advantage of its cloud-native capabilities and concurrent network handling.
+**Ballegram** — это амбициозный проект по созданию гибридной социальной платформы, которая объединяет скорость и приватность мессенджера (как Telegram) с визуальным вовлечением социальной сети (как Instagram). Весь бэкенд разработан на **Ballerina**, что позволяет использовать её возможности для облачной разработки и конкурентной обработки сетевых запросов.
 
-## 🚀 Vision
+## 🚀 Видение
 
-*   **Core:** A lightweight, real-time messenger.
-*   **Social:** A public feed for sharing photos/stories.
-*   **Goal:** High performance, type safety, and seamless network integration provided by Ballerina.
+*   **Основа:** Легковесный мессенджер в реальном времени.
+*   **Социальная часть:** Публичная лента для обмена фотографиями и историями.
+*   **Цель:** Высокая производительность, безопасность типов и бесшовная сетевая интеграция, предоставляемые Ballerina.
 
-## 🛠 Tech Stack
+## 🛠 Технологический стек
 
-*   **Language:** [Ballerina](https://ballerina.io/) (Swan Lake)
-*   **Database:** PostgreSQL (Primary Relational Data)
-*   **Caching & Pub/Sub:** Redis (Session management, WebSocket distribution)
-*   **Object Storage:** S3 / MinIO (Images, Videos)
-*   **Containerization:** Docker & Kubernetes
+*   **Язык:** [Ballerina](https://ballerina.io/) (Swan Lake)
+*   **База данных:** PostgreSQL (основные реляционные данные)
+*   **Кеширование и Pub/Sub:** Redis (управление сессиями, распределение WebSocket)
+*   **Объектное хранилище:** S3 / MinIO (изображения, видео)
+*   **Контейнеризация:** Docker и Kubernetes
 
-## 📂 Project Structure
+## 📂 Структура проекта
 
-We follow a **Modular Monolith** architecture. This allows us to keep domains separated while deploying a single binary (initially).
+Мы используем архитектуру **модульного монолита**. Это позволяет нам разделять предметные области, развертывая при этом единый бинарный файл (на начальном этапе).
 
 ```text
 ballegram/
-├── Ballerina.toml          # Project configuration
-├── Config.toml             # Environment variables
-├── modules/                # Domain-specific logic
-│   ├── auth/               # User registration, JWT issuance
-│   ├── chat/               # Messaging logic, WebSocket handling
-│   ├── social/             # Feed, Posts, Interactions
-│   ├── media/              # S3 upload/download handling
-│   └── common/             # Shared types, errors, DB client
-├── service/                # Entry points (HTTP/GraphQL/WebSocket listeners)
-│   ├── api_service.bal     # Main HTTP API
-│   └── chat_service.bal    # WebSocket Listener
-├── tests/                  # Integration tests
-└── docker/                 # Infrastructure setup (Postgres, Redis)
+├── Ballerina.toml          # Конфигурация проекта
+├── Config.toml             # Переменные окружения
+├── modules/                # Логика предметных областей
+│   ├── auth/               # Регистрация пользователей, выдача JWT
+│   ├── chat/               # Логика обмена сообщениями, обработка WebSocket
+│   ├── social/             # Лента, посты, взаимодействия
+│   ├── media/              # Обработка загрузки/скачивания в S3
+│   └── common/             # Общие типы, ошибки, клиент БД
+├── service/                # Точки входа (слушатели HTTP/GraphQL/WebSocket)
+│   ├── api_service.bal     # Основной HTTP API
+│   └── chat_service.bal    # Слушатель WebSocket
+├── tests/                  # Интеграционные тесты
+└── docker/                 # Настройка инфраструктуры (Postgres, Redis)
 ```
 
-## 💾 Database Schema (PostgreSQL)
+## 💾 Схема базы данных (PostgreSQL)
 
-The database is designed to support both high-throughput messaging and relational social data.
+База данных спроектирована для поддержки как высоконагруженного обмена сообщениями, так и реляционных социальных данных.
 
-### Users & Auth
+### Пользователи и Аутентификация
 *   **`users`**
     *   `id` (UUID, PK)
-    *   `username` (VARCHAR, Unique)
-    *   `email` (VARCHAR, Unique)
+    *   `username` (VARCHAR, Уникальный)
+    *   `email` (VARCHAR, Уникальный)
     *   `password_hash` (VARCHAR)
     *   `avatar_url` (VARCHAR, Nullable)
     *   `bio` (TEXT, Nullable)
@@ -56,12 +56,12 @@ The database is designed to support both high-throughput messaging and relationa
     *   `following_id` (UUID, FK -> users.id)
     *   *PK: (follower_id, following_id)*
 
-### Messaging (Telegram-like)
+### Обмен сообщениями (подобно Telegram)
 *   **`chats`**
     *   `id` (UUID, PK)
     *   `type` (ENUM: 'DIRECT', 'GROUP')
     *   `created_at` (TIMESTAMP)
-    *   `updated_at` (TIMESTAMP) -- used for sorting chat list
+    *   `updated_at` (TIMESTAMP) -- используется для сортировки списка чатов
 
 *   **`chat_participants`**
     *   `chat_id` (UUID, FK -> chats.id)
@@ -70,7 +70,7 @@ The database is designed to support both high-throughput messaging and relationa
     *   *PK: (chat_id, user_id)*
 
 *   **`messages`**
-    *   `id` (BIGSERIAL or TSID, PK)
+    *   `id` (BIGSERIAL или TSID, PK)
     *   `chat_id` (UUID, FK -> chats.id)
     *   `sender_id` (UUID, FK -> users.id)
     *   `content` (TEXT)
@@ -78,12 +78,12 @@ The database is designed to support both high-throughput messaging and relationa
     *   `created_at` (TIMESTAMP)
     *   `is_read` (BOOLEAN)
 
-### Social Feed (Instagram-like)
+### Социальная лента (подобно Instagram)
 *   **`posts`**
     *   `id` (UUID, PK)
     *   `user_id` (UUID, FK -> users.id)
     *   `caption` (TEXT)
-    *   `media_urls` (JSONB) -- Array of image URLs
+    *   `media_urls` (JSONB) -- Массив URL изображений
     *   `created_at` (TIMESTAMP)
 
 *   **`likes`**
@@ -98,18 +98,18 @@ The database is designed to support both high-throughput messaging and relationa
     *   `content` (TEXT)
     *   `created_at` (TIMESTAMP)
 
-## 🧪 Testing Strategy (No Client)
+## 🧪 Стратегия тестирования (Без клиента)
 
-Since the frontend is not yet developed, we verify the backend using **contract-driven testing**:
+Поскольку фронтенд еще не разработан, мы проверяем бэкенд с использованием **тестирования на основе контрактов**:
 
-1.  **Unit Tests:** Inside each Ballerina module.
-2.  **Integration Tests:** Using Ballerina's test suite to spin up services and hit endpoints.
-3.  **API Simulation:**
-    *   **HTTP**: `curl` scripts or Postman/Bruno collections.
-    *   **WebSockets**: Using `wscat` or a simple Ballerina WebSocket client script to simulate chat traffic.
+1.  **Модульные тесты:** Внутри каждого модуля Ballerina.
+2.  **Интеграционные тесты:** Использование тестового набора Ballerina для запуска сервисов и проверки эндпоинтов.
+3.  **Симуляция API:**
+    *   **HTTP**: Скрипты `curl` или коллекции Postman/Bruno.
+    *   **WebSockets**: Использование `wscat` или простого скрипта WebSocket клиента на Ballerina для симуляции трафика чата.
 
-## 🚀 Getting Started
+## 🚀 Быстрый старт
 
-1.  Start infrastructure: `docker-compose up -d`
-2.  Run migration: `bal run modules/db_migration`
-3.  Start server: `bal run`
+1.  Запустите инфраструктуру: `docker-compose up -d`
+2.  Выполните миграцию: `bal run modules/db_migration`
+3.  Запустите сервер: `bal run`
