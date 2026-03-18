@@ -1,7 +1,7 @@
 import ballerina/test;
 import ballerina/grpc;
 
-final grpc:Client testGrpcClient = check new grpc:Client("http://localhost:9092");
+final AuthServiceClient testGrpcClient = check new ("http://localhost:9092");
 
 @test:Config {}
 function testGrpcRegisterSuccess() returns error? {
@@ -11,9 +11,7 @@ function testGrpcRegisterSuccess() returns error? {
         password: "password123"
     };
 
-    [anydata, map<string|string[]>] response = check testGrpcClient->executeSimpleRPC("ballegram.AuthService/Register", req);
-    anydata payload = response[0];
-    RegisterResponse result = check payload.cloneWithType(RegisterResponse);
+    RegisterResponse result = check testGrpcClient->Register(req);
     test:assertEquals(result.username, "grpctestuser");
     test:assertEquals(result.email, "grpc@test.com");
 }
@@ -25,9 +23,7 @@ function testGrpcLoginSuccess() returns error? {
         password: "password123"
     };
 
-    [anydata, map<string|string[]>] response = check testGrpcClient->executeSimpleRPC("ballegram.AuthService/Login", req);
-    anydata payload = response[0];
-    LoginResponse result = check payload.cloneWithType(LoginResponse);
+    LoginResponse result = check testGrpcClient->Login(req);
     test:assertTrue(result.token != "", "Token should not be empty");
 }
 
@@ -38,6 +34,6 @@ function testGrpcLoginFailure() returns error? {
         password: "wrongpassword"
     };
 
-    [anydata, map<string|string[]>]|grpc:Error response = testGrpcClient->executeSimpleRPC("ballegram.AuthService/Login", req);
+    LoginResponse|grpc:Error response = testGrpcClient->Login(req);
     test:assertTrue(response is grpc:Error, "Expected an error");
 }

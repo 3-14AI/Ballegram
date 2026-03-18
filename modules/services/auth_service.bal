@@ -1,7 +1,43 @@
 import ballerina/http;
 import ballerina/grpc;
 
-final grpc:Client authGrpcClient = check new grpc:Client("http://localhost:9092");
+public isolated client class AuthServiceClient {
+    *grpc:AbstractClientEndpoint;
+    private final grpc:Client grpcClient;
+
+    public isolated function init(string url, *grpc:ClientConfiguration config) returns grpc:Error? {
+        self.grpcClient = check new (url, config);
+        check self.grpcClient.initStub(self, GRPC_AUTH_DESC, {});
+    }
+
+    isolated remote function Register(RegisterRequest req) returns RegisterResponse|grpc:Error {
+        [anydata, map<string|string[]>]|grpc:Error response = self.grpcClient->executeSimpleRPC("ballegram.AuthService/Register", req);
+        if response is grpc:Error {
+            return response;
+        }
+        anydata payload = response[0];
+        RegisterResponse|error regResponse = payload.cloneWithType(RegisterResponse);
+        if regResponse is error {
+            return error grpc:InternalError("Invalid response type from IdP");
+        }
+        return regResponse;
+    }
+
+    isolated remote function Login(LoginRequest req) returns LoginResponse|grpc:Error {
+        [anydata, map<string|string[]>]|grpc:Error response = self.grpcClient->executeSimpleRPC("ballegram.AuthService/Login", req);
+        if response is grpc:Error {
+            return response;
+        }
+        anydata payload = response[0];
+        LoginResponse|error loginResponse = payload.cloneWithType(LoginResponse);
+        if loginResponse is error {
+            return error grpc:InternalError("Invalid response type from IdP");
+        }
+        return loginResponse;
+    }
+}
+
+final AuthServiceClient authGrpcClient = check new ("http://localhost:9092");
 
 type RegisterRequest record {|
     string username;
@@ -32,19 +68,13 @@ service /auth on ep {
              return <http:BadRequest> { body: "Missing required fields" };
         }
 
-        [anydata, map<string|string[]>]|grpc:Error response = authGrpcClient->executeSimpleRPC("ballegram.AuthService/Register", req);
+        RegisterResponse|grpc:Error response = authGrpcClient->Register(req);
 
         if response is grpc:Error {
             return <http:InternalServerError> { body: response.message() };
         }
 
-        anydata payload = response[0];
-        RegisterResponse|error regResponse = payload.cloneWithType(RegisterResponse);
-        if regResponse is error {
-            return <http:InternalServerError> { body: "Invalid response format from IdP" };
-        }
-
-        return <http:Created> { body: regResponse };
+        return <http:Created> { body: response };
     }
 
     isolated resource function post login(@http:Payload LoginRequest req) returns LoginResponse|http:Unauthorized|http:BadRequest|http:InternalServerError {
@@ -52,7 +82,7 @@ service /auth on ep {
             return <http:BadRequest> { body: "Missing required fields" };
         }
 
-        [anydata, map<string|string[]>]|grpc:Error response = authGrpcClient->executeSimpleRPC("ballegram.AuthService/Login", req);
+        LoginResponse|grpc:Error response = authGrpcClient->Login(req);
 
         if response is grpc:Error {
             if response is grpc:UnauthenticatedError {
@@ -61,12 +91,6 @@ service /auth on ep {
             return <http:InternalServerError> { body: response.message() };
         }
 
-        anydata payload = response[0];
-        LoginResponse|error loginResponse = payload.cloneWithType(LoginResponse);
-        if loginResponse is error {
-            return <http:InternalServerError> { body: "Invalid response format from IdP" };
-        }
-
-        return loginResponse;
+        return response;
     }
 }
