@@ -1,10 +1,6 @@
 import ballerina/grpc;
 import ballegram.auth;
 
-@grpc:ServiceDescriptor {
-    descriptor: GRPC_AUTH_DESC,
-    descMap: {}
-}
 service "AuthService" on new grpc:Listener(9092) {
 
     remote function Register(RegisterRequest req) returns RegisterResponse|error {
@@ -40,5 +36,3 @@ service "AuthService" on new grpc:Listener(9092) {
         return { token: token };
     }
 }
-
-const string GRPC_AUTH_DESC = "CgphdXRoLnByb3RvEgliYWxsZWdyYW0iUAoPUmVnaXN0ZXJSZXF1ZXN0EhAKCHVzZXJuYW1lGAEgASgJEg0KBWVtYWlsGAIgASgJEhwKCHBhc3N3b3JkGAMgASgJIlsKEFJlZ2lzdGVyUmVzcG9uc2USCgoCaWQYASABKAMSFAoIdXNlcm5hbWUYAiABKAkSDQoFZW1haWwYAyABKAkSFgoKY3JlYXRlZF9hdBgEIAEoCSI0CgxMb2dpblJlcXVlc3QSEAoIdXNlcm5hbWUYASABKAkSEgoIcGFzc3dvcmQYAiABKAkiHgoNTG9naW5SZXNwb25zZRINCgV0b2tlbhgBIAEoCTqUAQoLQXV0aFNlcnZpY2USRgoIUmVnaXN0ZXISGi5iYWxsZWdyYW0uUmVnaXN0ZXJSZXF1ZXN0GhouYmFsbGVncmFtLlJlZ2lzdGVyUmVzcG9uc2USPQoFTG9naW4SFy5iYWxsZWdyYW0uTG9naW5SZXF1ZXN0GhguYmFsbGVncmFtLkxvZ2luUmVzcG9uc2ViBnByb3RvMw==";
