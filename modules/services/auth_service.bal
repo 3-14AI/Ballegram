@@ -1,7 +1,7 @@
 import ballerina/http;
 import ballerina/grpc;
 
-final grpc:Client authGrpcClient = check new ("http://localhost:9092");
+final grpc:Client authGrpcClient = check new grpc:Client("http://localhost:9092");
 
 type RegisterRequest record {|
     string username;
@@ -32,13 +32,19 @@ service /auth on ep {
              return <http:BadRequest> { body: "Missing required fields" };
         }
 
-        RegisterResponse|grpc:Error response = authGrpcClient->executeSimpleRPC("ballegram.AuthService/Register", req);
+        [anydata, map<string|string[]>]|grpc:Error response = authGrpcClient->executeSimpleRPC("ballegram.AuthService/Register", req);
 
         if response is grpc:Error {
             return <http:InternalServerError> { body: response.message() };
         }
 
-        return <http:Created> { body: response };
+        anydata payload = response[0];
+        RegisterResponse|error regResponse = payload.cloneWithType(RegisterResponse);
+        if regResponse is error {
+            return <http:InternalServerError> { body: "Invalid response format from IdP" };
+        }
+
+        return <http:Created> { body: regResponse };
     }
 
     isolated resource function post login(@http:Payload LoginRequest req) returns LoginResponse|http:Unauthorized|http:BadRequest|http:InternalServerError {
@@ -46,7 +52,7 @@ service /auth on ep {
             return <http:BadRequest> { body: "Missing required fields" };
         }
 
-        LoginResponse|grpc:Error response = authGrpcClient->executeSimpleRPC("ballegram.AuthService/Login", req);
+        [anydata, map<string|string[]>]|grpc:Error response = authGrpcClient->executeSimpleRPC("ballegram.AuthService/Login", req);
 
         if response is grpc:Error {
             if response is grpc:UnauthenticatedError {
@@ -55,6 +61,12 @@ service /auth on ep {
             return <http:InternalServerError> { body: response.message() };
         }
 
-        return response;
+        anydata payload = response[0];
+        LoginResponse|error loginResponse = payload.cloneWithType(LoginResponse);
+        if loginResponse is error {
+            return <http:InternalServerError> { body: "Invalid response format from IdP" };
+        }
+
+        return loginResponse;
     }
 }

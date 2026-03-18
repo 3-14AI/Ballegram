@@ -1,34 +1,13 @@
 import ballerina/grpc;
 import ballegram.auth;
 
-type RegisterRequest record {|
-    string username;
-    string email;
-    string password;
-|};
-
-type RegisterResponse record {|
-    int id;
-    string username;
-    string? email;
-    string created_at;
-|};
-
-type LoginRequest record {|
-    string username;
-    string password;
-|};
-
-type LoginResponse record {|
-    string token;
-|};
-
-@grpc:Descriptor {
-    value: GRPC_AUTH_DESC
+@grpc:ServiceDescriptor {
+    descriptor: GRPC_AUTH_DESC,
+    descMap: {}
 }
 service "AuthService" on new grpc:Listener(9092) {
 
-    isolated remote function Register(RegisterRequest req) returns RegisterResponse|error {
+    remote function Register(RegisterRequest req) returns RegisterResponse|error {
         if req.username == "" || req.email == "" || req.password == "" {
              return error grpc:InvalidArgumentError("Missing required fields");
         }
@@ -48,7 +27,7 @@ service "AuthService" on new grpc:Listener(9092) {
         return response;
     }
 
-    isolated remote function Login(LoginRequest req) returns LoginResponse|error {
+    remote function Login(LoginRequest req) returns LoginResponse|error {
         if req.username == "" || req.password == "" {
             return error grpc:InvalidArgumentError("Missing required fields");
         }
