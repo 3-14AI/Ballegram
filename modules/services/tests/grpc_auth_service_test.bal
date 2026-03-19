@@ -30,7 +30,7 @@ function testGrpcLoginSuccess() returns error? {
 @test:Config {}
 function testGrpcLoginFailure() returns error? {
     LoginRequest req = {
-        username: "nonexistent",
+        username: "login_error",
         password: "wrongpassword"
     };
 
