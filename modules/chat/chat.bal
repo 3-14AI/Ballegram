@@ -35,42 +35,24 @@ public isolated function createChat(DbClient db, int[] participantIds, ChatType 
     return result.cloneWithType(Chat);
 }
 
-# Saves a new message.
+# Saves a new message in the NoSQL database.
 #
-# + db - The database client
+# + db - The message store client
 # + chatId - The chat ID
 # + senderId - The sender's user ID
 # + content - The message content
 # + return - The created Message or error
-public isolated function saveMessage(DbClient db, int chatId, int senderId, string content) returns Message|error {
-    sql:ParameterizedQuery query = `
-        INSERT INTO messages (chat_id, sender_id, content)
-        VALUES (${chatId}, ${senderId}, ${content})
-        RETURNING id, chat_id, sender_id, content, created_at
-    `;
-
-    record {} result = check db->queryRow(query);
-    return result.cloneWithType(Message);
+public isolated function saveMessage(MessageStoreClient db, int chatId, int senderId, string content) returns Message|error {
+    return db->saveMessage(chatId, senderId, content);
 }
 
-# Retrieves chat history.
+# Retrieves chat history from the NoSQL database.
 #
-# + db - The database client
+# + db - The message store client
 # + chatId - The chat ID
 # + return - A stream of Messages or error
-public isolated function getChatHistory(DbClient db, int chatId) returns stream<Message, error?> {
-    sql:ParameterizedQuery query = `
-        SELECT id, chat_id, sender_id, content, created_at
-        FROM messages
-        WHERE chat_id = ${chatId}
-        ORDER BY created_at ASC
-    `;
-
-    // We pass the typedesc to the query method to hint the return type implementation
-    stream<record {}, sql:Error?> result = db->query(query, Message);
-
-    // Cast to the expected stream type
-    return <stream<Message, error?>>result;
+public isolated function getChatHistory(MessageStoreClient db, int chatId) returns stream<Message, error?>|error {
+    return db->getChatHistory(chatId);
 }
 
 # Retrieves the list of participants in a chat.

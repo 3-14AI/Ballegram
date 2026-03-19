@@ -89,7 +89,7 @@ service class ChatService {
         }
 
         // Save message
-        chat:Message|error savedMsg = chat:saveMessage(db, msg.chatId, self.userId, msg.content);
+        chat:Message|error savedMsg = chat:saveMessage(messageDb, msg.chatId, self.userId, msg.content);
         if savedMsg is error {
              check caller->writeMessage("Error: Failed to save message");
              return;

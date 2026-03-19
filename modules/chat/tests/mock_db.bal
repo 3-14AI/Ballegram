@@ -1,5 +1,60 @@
 import ballerina/sql;
 
+public isolated client class MockMessageStoreClient {
+    *MessageStoreClient;
+
+    private final Message? & readonly messageResponse;
+    private final Message[] & readonly messagesResponse;
+
+    public isolated function init(Message? & readonly messageResponse = (), Message[] & readonly messagesResponse = []) {
+        self.messageResponse = messageResponse;
+        self.messagesResponse = messagesResponse;
+    }
+
+    isolated remote function saveMessage(int chatId, int senderId, string content) returns Message|error {
+        Message? & readonly msg;
+        lock {
+            msg = self.messageResponse;
+        }
+        if msg is Message {
+            return msg;
+        }
+        return error("Mock message response not configured");
+    }
+
+    isolated remote function getChatHistory(int chatId) returns stream<Message, error?>|error {
+        Message[] & readonly msgs;
+        lock {
+            msgs = self.messagesResponse;
+        }
+        return new stream<Message, error?>(new MockMessageStream2(msgs));
+    }
+}
+
+public isolated class MockMessageStream2 {
+    private final Message[] & readonly messages;
+    private int index = 0;
+
+    public isolated function init(Message[] & readonly messages) {
+        self.messages = messages;
+    }
+
+    public isolated function next() returns record {| Message value; |}|error? {
+        Message & readonly|() result = ();
+        lock {
+            if self.index < self.messages.length() {
+                result = self.messages[self.index];
+                self.index += 1;
+            }
+        }
+
+        if result is Message {
+            return { value: result };
+        }
+        return ();
+    }
+}
+
 public isolated client class MockDbClient {
     *DbClient;
 

@@ -67,72 +67,45 @@ public isolated function getComments(DbClient db, int postId) returns CommentWit
 
 // Interaction: Follows
 
-public isolated function followUser(DbClient db, int followerId, int followingId) returns error? {
-    if followerId == followingId {
-        return error("Cannot follow yourself");
-    }
-    sql:ParameterizedQuery query = `
-        INSERT INTO follows (follower_id, following_id)
-        VALUES (${followerId}, ${followingId})
-        ON CONFLICT (follower_id, following_id) DO NOTHING
-        RETURNING follower_id
-    `;
-    GenericRecord|sql:Error result = db->queryRow(query);
-    if result is sql:NoRowsError {
-        // Already following, ignore
-        return ();
-    }
-    if result is sql:Error {
-        return result;
-    }
+public isolated function followUser(GraphClient graphDb, int followerId, int followingId) returns error? {
+    return graphDb->followUser(followerId, followingId);
 }
 
-public isolated function unfollowUser(DbClient db, int followerId, int followingId) returns error? {
-    sql:ParameterizedQuery query = `
-        DELETE FROM follows
-        WHERE follower_id = ${followerId} AND following_id = ${followingId}
-        RETURNING follower_id
-    `;
-    GenericRecord|sql:Error result = db->queryRow(query);
-    if result is sql:NoRowsError {
-        // Not following, ignore
-        return ();
-    }
-    if result is sql:Error {
-        return result;
-    }
+public isolated function unfollowUser(GraphClient graphDb, int followerId, int followingId) returns error? {
+    return graphDb->unfollowUser(followerId, followingId);
 }
 
-public isolated function getFollowers(DbClient db, int userId) returns UserSummary[]|error {
-    sql:ParameterizedQuery query = `
-        SELECT u.id, u.username
-        FROM follows f
-        JOIN users u ON f.follower_id = u.id
-        WHERE f.following_id = ${userId}
-    `;
+public isolated function getFollowers(GraphClient graphDb, DbClient db, int userId) returns UserSummary[]|error {
+    int[] followerIds = check graphDb->getFollowers(userId);
+    return resolveUsers(db, followerIds);
+}
+
+public isolated function getFollowing(GraphClient graphDb, DbClient db, int userId) returns UserSummary[]|error {
+    int[] followingIds = check graphDb->getFollowing(userId);
+    return resolveUsers(db, followingIds);
+}
+
+isolated function resolveUsers(DbClient db, int[] userIds) returns UserSummary[]|error {
+    if userIds.length() == 0 {
+        return [];
+    }
+
+    sql:ParameterizedQuery query = `SELECT id, username FROM users WHERE id IN (`;
+    foreach int i in 0 ..< userIds.length() {
+        if i > 0 {
+             query = sql:queryConcat(query, `,`);
+        }
+        int cur = userIds[i];
+        query = sql:queryConcat(query, `${cur}`);
+    }
+    query = sql:queryConcat(query, `)`);
+
     stream<GenericRecord, sql:Error?> resultStream = db->query(query);
 
-    UserSummary[] followers = [];
+    UserSummary[] summaries = [];
     check from GenericRecord row in resultStream
         do {
-            followers.push(check row.cloneWithType(UserSummary));
+            summaries.push(check row.cloneWithType(UserSummary));
         };
-    return followers;
-}
-
-public isolated function getFollowing(DbClient db, int userId) returns UserSummary[]|error {
-    sql:ParameterizedQuery query = `
-        SELECT u.id, u.username
-        FROM follows f
-        JOIN users u ON f.following_id = u.id
-        WHERE f.follower_id = ${userId}
-    `;
-    stream<GenericRecord, sql:Error?> resultStream = db->query(query);
-
-    UserSummary[] following = [];
-    check from GenericRecord row in resultStream
-        do {
-            following.push(check row.cloneWithType(UserSummary));
-        };
-    return following;
+    return summaries;
 }
