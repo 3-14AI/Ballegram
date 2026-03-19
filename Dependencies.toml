@@ -21,6 +21,14 @@ dependencies = [
 
 [[package]]
 org = "ballerina"
+name = "avro"
+version = "1.2.1"
+dependencies = [
+	{org = "ballerina", name = "jballerina.java"}
+]
+
+[[package]]
+org = "ballerina"
 name = "cache"
 version = "3.10.0"
 dependencies = [
@@ -46,6 +54,9 @@ dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "time"}
 ]
+modules = [
+	{org = "ballerina", packageName = "crypto", moduleName = "crypto"}
+]
 
 [[package]]
 org = "ballerina"
@@ -65,6 +76,33 @@ dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "os"},
 	{org = "ballerina", name = "time"}
+]
+modules = [
+	{org = "ballerina", packageName = "file", moduleName = "file"}
+]
+
+[[package]]
+org = "ballerina"
+name = "grpc"
+version = "1.14.4"
+dependencies = [
+	{org = "ballerina", name = "auth"},
+	{org = "ballerina", name = "crypto"},
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "jwt"},
+	{org = "ballerina", name = "lang.runtime"},
+	{org = "ballerina", name = "log"},
+	{org = "ballerina", name = "oauth2"},
+	{org = "ballerina", name = "protobuf"},
+	{org = "ballerina", name = "time"}
+]
+modules = [
+	{org = "ballerina", packageName = "grpc", moduleName = "grpc"},
+	{org = "ballerina", packageName = "grpc", moduleName = "grpc.types.any"},
+	{org = "ballerina", packageName = "grpc", moduleName = "grpc.types.duration"},
+	{org = "ballerina", packageName = "grpc", moduleName = "grpc.types.struct"},
+	{org = "ballerina", packageName = "grpc", moduleName = "grpc.types.timestamp"},
+	{org = "ballerina", packageName = "grpc", moduleName = "grpc.types.wrappers"}
 ]
 
 [[package]]
@@ -130,6 +168,9 @@ dependencies = [
 	{org = "ballerina", name = "lang.string"},
 	{org = "ballerina", name = "log"},
 	{org = "ballerina", name = "time"}
+]
+modules = [
+	{org = "ballerina", packageName = "jwt", moduleName = "jwt"}
 ]
 
 [[package]]
@@ -269,6 +310,15 @@ dependencies = [
 
 [[package]]
 org = "ballerina"
+name = "protobuf"
+version = "1.8.0"
+dependencies = [
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "time"}
+]
+
+[[package]]
+org = "ballerina"
 name = "sql"
 version = "1.17.1"
 dependencies = [
@@ -312,6 +362,9 @@ version = "2.8.0"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
 ]
+modules = [
+	{org = "ballerina", packageName = "time", moduleName = "time"}
+]
 
 [[package]]
 org = "ballerina"
@@ -330,6 +383,9 @@ dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.int"},
 	{org = "ballerina", name = "time"}
+]
+modules = [
+	{org = "ballerina", packageName = "uuid", moduleName = "uuid"}
 ]
 
 [[package]]
@@ -370,18 +426,54 @@ modules = [
 [[package]]
 org = "ballerinax"
 name = "cdc"
-version = "1.0.3"
+version = "1.2.1"
 dependencies = [
 	{org = "ballerina", name = "crypto"},
 	{org = "ballerina", name = "data.jsondata"},
+	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"},
-	{org = "ballerinai", name = "observe"}
+	{org = "ballerina", name = "log"},
+	{org = "ballerinai", name = "observe"},
+	{org = "ballerinax", name = "kafka"}
+]
+
+[[package]]
+org = "ballerinax"
+name = "confluent.cavroserdes"
+version = "1.0.2"
+dependencies = [
+	{org = "ballerina", name = "avro"},
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerinai", name = "observe"},
+	{org = "ballerinax", name = "confluent.cregistry"}
+]
+
+[[package]]
+org = "ballerinax"
+name = "confluent.cregistry"
+version = "0.4.3"
+dependencies = [
+	{org = "ballerina", name = "jballerina.java"}
+]
+
+[[package]]
+org = "ballerinax"
+name = "kafka"
+version = "4.6.4"
+dependencies = [
+	{org = "ballerina", name = "crypto"},
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "time"},
+	{org = "ballerina", name = "uuid"},
+	{org = "ballerinai", name = "observe"},
+	{org = "ballerinax", name = "confluent.cavroserdes"},
+	{org = "ballerinax", name = "confluent.cregistry"}
 ]
 
 [[package]]
 org = "ballerinax"
 name = "postgresql"
-version = "1.16.2"
+version = "1.16.4"
 dependencies = [
 	{org = "ballerina", name = "crypto"},
 	{org = "ballerina", name = "io"},
@@ -399,10 +491,16 @@ org = "jules"
 name = "ballegram"
 version = "0.1.0"
 dependencies = [
+	{org = "ballerina", name = "crypto"},
+	{org = "ballerina", name = "file"},
+	{org = "ballerina", name = "grpc"},
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "io"},
+	{org = "ballerina", name = "jwt"},
 	{org = "ballerina", name = "sql"},
 	{org = "ballerina", name = "test"},
+	{org = "ballerina", name = "time"},
+	{org = "ballerina", name = "uuid"},
 	{org = "ballerina", name = "websocket"},
 	{org = "ballerinai", name = "observe"},
 	{org = "ballerinax", name = "postgresql"}
@@ -413,6 +511,7 @@ modules = [
 	{org = "jules", packageName = "ballegram", moduleName = "ballegram.chat"},
 	{org = "jules", packageName = "ballegram", moduleName = "ballegram.common"},
 	{org = "jules", packageName = "ballegram", moduleName = "ballegram.media"},
+	{org = "jules", packageName = "ballegram", moduleName = "ballegram.post"},
 	{org = "jules", packageName = "ballegram", moduleName = "ballegram.services"},
 	{org = "jules", packageName = "ballegram", moduleName = "ballegram.social"}
 ]
