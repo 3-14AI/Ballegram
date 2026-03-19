@@ -1,22 +1,0 @@
-
-\xf5
-
-auth.proto	ballegram"_
-RegisterRequest
-username (	Rusername
-email (	Remail
-password (	Rpassword"s
-RegisterResponse
-id (Rid
-username (	Rusername
-email (	Remail
-
-created_at (	R	createdAt"F
-LoginRequest
-username (	Rusername
-password (	Rpassword"%
-LoginResponse
-token (	Rtoken2\x8e
-AuthServiceC
-Register.ballegram.RegisterRequest.ballegram.RegisterResponse:
-Login.ballegram.LoginRequest.ballegram.LoginResponsebproto3

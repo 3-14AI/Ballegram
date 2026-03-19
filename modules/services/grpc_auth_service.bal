@@ -1,11 +1,10 @@
 import ballerina/grpc;
 import ballegram.auth;
 
-@grpc:ServiceDescriptor {
-    descriptor: GRPC_AUTH_DESC,
-    descMap: {}
+@grpc:Descriptor {
+    value: GRPC_AUTH_DESC
 }
-service "ballegram.AuthService" on new grpc:Listener(9092) {
+service "AuthService" on new grpc:Listener(9092) {
 
     remote function Register(RegisterRequest req) returns RegisterResponse|error {
         if req.username == "" || req.email == "" || req.password == "" {
@@ -20,7 +19,7 @@ service "ballegram.AuthService" on new grpc:Listener(9092) {
         RegisterResponse response = {
             id: user.id,
             username: user.username,
-            email: user.email,
+            email: user.email ?: "",
             created_at: user.created_at.toString()
         };
 

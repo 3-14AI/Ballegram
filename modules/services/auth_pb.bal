@@ -10,7 +10,7 @@ public isolated client class AuthServiceClient {
 
     public isolated function init(string url, *grpc:ClientConfiguration config) returns grpc:Error? {
         self.grpcClient = check new (url, config);
-        check self.grpcClient.initStub(self, AUTH_DESC);
+        check self.grpcClient.initStub(self, AUTH_DESC, {});
     }
 
     isolated remote function Register(RegisterRequest|ContextRegisterRequest req) returns RegisterResponse|grpc:Error {
@@ -67,70 +67,6 @@ public isolated client class AuthServiceClient {
         var payload = check self.grpcClient->executeSimpleRPC("ballegram.AuthService/Login", message, headers);
         [anydata, map<string|string[]>] [result, respHeaders] = payload;
         return {content: <LoginResponse>result, headers: respHeaders};
-    }
-}
-
-public isolated client class AuthServiceLoginResponseCaller {
-    private final grpc:Caller caller;
-
-    public isolated function init(grpc:Caller caller) {
-        self.caller = caller;
-    }
-
-    public isolated function getId() returns int {
-        return self.caller.getId();
-    }
-
-    isolated remote function sendLoginResponse(LoginResponse response) returns grpc:Error? {
-        return self.caller->send(response);
-    }
-
-    isolated remote function sendContextLoginResponse(ContextLoginResponse response) returns grpc:Error? {
-        return self.caller->send(response);
-    }
-
-    isolated remote function sendError(grpc:Error response) returns grpc:Error? {
-        return self.caller->sendError(response);
-    }
-
-    isolated remote function complete() returns grpc:Error? {
-        return self.caller->complete();
-    }
-
-    public isolated function isCancelled() returns boolean {
-        return self.caller.isCancelled();
-    }
-}
-
-public isolated client class AuthServiceRegisterResponseCaller {
-    private final grpc:Caller caller;
-
-    public isolated function init(grpc:Caller caller) {
-        self.caller = caller;
-    }
-
-    public isolated function getId() returns int {
-        return self.caller.getId();
-    }
-
-    isolated remote function sendRegisterResponse(RegisterResponse response) returns grpc:Error? {
-        return self.caller->send(response);
-    }
-
-    isolated remote function sendContextRegisterResponse(ContextRegisterResponse response) returns grpc:Error? {
-        return self.caller->send(response);
-    }
-
-    isolated remote function sendError(grpc:Error response) returns grpc:Error? {
-        return self.caller->sendError(response);
-    }
-
-    isolated remote function complete() returns grpc:Error? {
-        return self.caller->complete();
-    }
-
-    public isolated function isCancelled() returns boolean {
-        return self.caller.isCancelled();
     }
 }
 
