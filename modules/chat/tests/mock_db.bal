@@ -29,6 +29,10 @@ public isolated client class MockMessageStoreClient {
         }
         return new stream<Message, error?>(new MockMessageStream2(msgs));
     }
+
+    isolated remote function deleteOldMessages(int retentionSeconds) returns error? {
+        return ();
+    }
 }
 
 public isolated class MockMessageStream2 {

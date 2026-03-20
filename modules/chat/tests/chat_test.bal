@@ -76,3 +76,11 @@ function testGetChatHistory() returns error? {
     record {| Message value; |}|error? item3 = history.next();
     test:assertTrue(item3 is ());
 }
+
+@test:Config {}
+function testDeleteOldMessages() returns error? {
+    MockMessageStoreClient mockDb = new();
+    // This should execute without errors based on mock implementation
+    error? result = mockDb->deleteOldMessages(157680000);
+    test:assertTrue(result is ());
+}

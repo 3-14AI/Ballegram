@@ -4,6 +4,7 @@ import ballerina/time;
 public type MessageStoreClient isolated client object {
     isolated remote function saveMessage(int chatId, int senderId, string content) returns Message|error;
     isolated remote function getChatHistory(int chatId) returns stream<Message, error?>|error;
+    isolated remote function deleteOldMessages(int retentionSeconds) returns error?;
 };
 
 public isolated client class OpenSearchMessageClient {
@@ -120,6 +121,28 @@ public isolated client class OpenSearchMessageClient {
         }
 
         return new stream<Message, error?>(new MessageStream(messages.cloneReadOnly()));
+    }
+
+    isolated remote function deleteOldMessages(int retentionSeconds) returns error? {
+        time:Utc now = time:utcNow();
+        int currentTimestamp = now[0];
+        int targetTimestamp = currentTimestamp - retentionSeconds;
+
+        json queryPayload = {
+            "query": {
+                "range": {
+                    "created_at_0": {
+                        "lt": targetTimestamp
+                    }
+                }
+            }
+        };
+
+        http:Response resp = check self.osHttp->post("/" + self.indexName + "/_delete_by_query", queryPayload);
+        if resp.statusCode >= 400 {
+            string payload = check resp.getTextPayload();
+            return error("Failed to delete old messages: " + payload);
+        }
     }
 }
 
