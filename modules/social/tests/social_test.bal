@@ -2,6 +2,34 @@ import ballerina/sql;
 import ballerina/test;
 import ballerina/time;
 
+public isolated client class MockGraphClient {
+    *GraphClient;
+    private final int[] & readonly getFollowersRes;
+    private final int[] & readonly getFollowingRes;
+
+    public isolated function init(int[] getFollowersRes = [], int[] getFollowingRes = []) {
+        self.getFollowersRes = getFollowersRes.cloneReadOnly();
+        self.getFollowingRes = getFollowingRes.cloneReadOnly();
+    }
+
+    isolated remote function followUser(int followerId, int followingId) returns error? {
+        if followerId == followingId {
+            return error("Cannot follow yourself");
+        }
+    }
+
+    isolated remote function unfollowUser(int followerId, int followingId) returns error? {
+    }
+
+    isolated remote function getFollowers(int userId) returns int[]|error {
+        return self.getFollowersRes;
+    }
+
+    isolated remote function getFollowing(int userId) returns int[]|error {
+        return self.getFollowingRes;
+    }
+}
+
 public isolated client class MockDbClient {
     *DbClient;
     private final GenericRecord[] & readonly queryResults;
@@ -97,14 +125,14 @@ function testGetComments() returns error? {
 
 @test:Config {}
 function testFollowUser() returns error? {
-    MockDbClient db = new([{"follower_id": 1}]);
-    check followUser(db, 1, 2);
+    MockGraphClient graphDb = new();
+    check followUser(graphDb, 1, 2);
 }
 
 @test:Config {}
 function testUnfollowUser() returns error? {
-    MockDbClient db = new([{"follower_id": 1}]);
-    check unfollowUser(db, 1, 2);
+    MockGraphClient graphDb = new();
+    check unfollowUser(graphDb, 1, 2);
 }
 
 @test:Config {}
@@ -113,8 +141,9 @@ function testGetFollowers() returns error? {
         "id": 1,
         "username": "follower"
     }]);
+    MockGraphClient graphDb = new(getFollowersRes = [1]);
 
-    UserSummary[] followers = check getFollowers(db, 2);
+    UserSummary[] followers = check getFollowers(graphDb, db, 2);
     test:assertEquals(followers.length(), 1);
     test:assertEquals(followers[0].username, "follower");
 }
@@ -125,8 +154,9 @@ function testGetFollowing() returns error? {
         "id": 2,
         "username": "following"
     }]);
+    MockGraphClient graphDb = new(getFollowingRes = [2]);
 
-    UserSummary[] following = check getFollowing(db, 1);
+    UserSummary[] following = check getFollowing(graphDb, db, 1);
     test:assertEquals(following.length(), 1);
     test:assertEquals(following[0].username, "following");
 }

@@ -32,7 +32,7 @@ function testSaveMessage() returns error? {
         created_at: time:utcNow()
     };
 
-    MockDbClient mockDb = new(queryRowResponse = expectedMessage.cloneReadOnly());
+    MockMessageStoreClient mockDb = new(messageResponse = expectedMessage.cloneReadOnly());
 
     Message|error result = saveMessage(mockDb, 1, 2, "Hello");
 
@@ -52,11 +52,14 @@ function testGetChatHistory() returns error? {
         id: 2, chat_id: 1, sender_id: 2, content: "Hello", created_at: time:utcNow()
     };
 
-    // Pass the array of messages directly. MockDbClient expects record{}[] & readonly.
-    // Message[] is compatible with record{}[]. cloneReadOnly() ensures it is readonly.
-    MockDbClient mockDb = new(queryResults = [msg1, msg2].cloneReadOnly());
+    MockMessageStoreClient mockDb = new(messagesResponse = [msg1, msg2].cloneReadOnly());
 
-    stream<Message, error?> history = getChatHistory(mockDb, 1);
+    stream<Message, error?>|error historyRes = getChatHistory(mockDb, 1);
+    test:assertTrue(historyRes is stream<Message, error?>);
+    if historyRes is error {
+        return historyRes;
+    }
+    stream<Message, error?> history = historyRes;
 
     record {| Message value; |}|error? item1 = history.next();
     test:assertTrue(item1 is record {| Message value; |});

@@ -118,7 +118,7 @@ service /social on ep {
             return <http:BadRequest> { body: "Cannot follow yourself" };
         }
 
-        error? result = social:followUser(db, followerId, userId);
+        error? result = social:followUser(graphDb, followerId, userId);
         if result is error {
             return <http:InternalServerError> { body: result.message() };
         }
@@ -131,7 +131,7 @@ service /social on ep {
             return <http:Unauthorized> { body: followerId.message() };
         }
 
-        error? result = social:unfollowUser(db, followerId, userId);
+        error? result = social:unfollowUser(graphDb, followerId, userId);
         if result is error {
             return <http:InternalServerError> { body: result.message() };
         }
@@ -139,7 +139,7 @@ service /social on ep {
     }
 
     isolated resource function get users/[int userId]/followers() returns social:UserSummary[]|http:InternalServerError {
-        social:UserSummary[]|error followers = social:getFollowers(db, userId);
+        social:UserSummary[]|error followers = social:getFollowers(graphDb, db, userId);
         if followers is error {
             return <http:InternalServerError> { body: followers.message() };
         }
@@ -147,7 +147,7 @@ service /social on ep {
     }
 
     isolated resource function get users/[int userId]/following() returns social:UserSummary[]|http:InternalServerError {
-        social:UserSummary[]|error following = social:getFollowing(db, userId);
+        social:UserSummary[]|error following = social:getFollowing(graphDb, db, userId);
         if following is error {
             return <http:InternalServerError> { body: following.message() };
         }

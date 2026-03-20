@@ -17,6 +17,24 @@ services:
       timeout: 5s
       retries: 5
 
+  opensearch:
+    image: opensearchproject/opensearch:2.11.0
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=Admin123!@#
+    ports:
+      - "9200:9200"
+
+  neo4j:
+    image: neo4j:5
+    restart: always
+    environment:
+      - NEO4J_AUTH=neo4j/password
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+
   redis:
     image: redis:7-alpine
     restart: always
