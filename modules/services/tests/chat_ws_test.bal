@@ -51,4 +51,7 @@ function testWebSocketChatService() returns error? {
     string message = check wsClient->readMessage();
 
     test:assertTrue(message.includes("Hello WS!"), msg = "Message content should match what was sent");
+
+    // Close the connection properly so the listener thread doesn't hang the test JVM
+    check wsClient->close();
 }
