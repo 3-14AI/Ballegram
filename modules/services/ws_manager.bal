@@ -38,12 +38,15 @@ public isolated class ConnectionManager {
                 string key = userId.toString();
                 if self.connections.hasKey(key) {
                     websocket:Caller[] callers = self.connections.get(key);
-                    foreach websocket:Caller caller in callers {
-                         // Ignore errors during broadcast
-                         error? result = caller->writeMessage(message);
-                         if result is error {
-                             // Ignore
-                         }
+                    foreach int i in 0 ..< callers.length() {
+                        websocket:Caller caller = callers[i];
+                        // Ignore errors during broadcast
+                        // It's safe to invoke remote isolated methods within the lock block if we just ignore them
+                        // However, writeMessage might be blocking. Ballerina allows it if caller is isolated object.
+                        error? result = caller->writeMessage(message);
+                        if result is error {
+                            // Ignore
+                        }
                     }
                 }
             }
