@@ -8,7 +8,7 @@ public isolated function routeEvent(json msgJson) returns error? {
 
             if eventType == "NEW_MESSAGE" {
                 // Broadcast chat message
-                json|error participantsJson = msgJson.get("participants");
+                json|error participantsJson = msgJson.participants;
                 if participantsJson is json[] {
                     int[] participants = [];
                     foreach json p in participantsJson {
@@ -21,6 +21,23 @@ public isolated function routeEvent(json msgJson) returns error? {
                     json|error payload = msgJson.get("payload");
                     if payload is json {
                         connectionManager.broadcast(participants, payload.cloneReadOnly());
+                    }
+                }
+            } else if eventType == "CDC_EVENT" {
+                // Broadcast change data to participants
+                json|error participantsJson = msgJson.participants;
+                if participantsJson is json[] {
+                    int[] participants = [];
+                    foreach json p in participantsJson {
+                        int|error id = p.ensureType(int);
+                        if id is int {
+                            participants.push(id);
+                        }
+                    }
+
+                    json|error delta = msgJson.delta;
+                    if delta is json {
+                        connectionManager.broadcast(participants, delta.cloneReadOnly());
                     }
                 }
             } else if eventType == "LIKE" || eventType == "COMMENT" {

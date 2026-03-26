@@ -46,6 +46,9 @@ service /social on ep {
         }
         var likeEvent = {eventType: "LIKE", postId: postId, userId: userId};
         error? pubErr = eventBroker.publishEvent("events", likeEvent.toJson().toString().toBytes()); if pubErr is error { log:printError("Failed to publish event to broker", 'error = pubErr); }
+        var cdcEventLike = {eventType: "CDC_EVENT", participants: [userId], delta: {entity: "LIKE", action: "ADDED", postId: postId}};
+        error? pubCdcErr1 = eventBroker.publishEvent("events", cdcEventLike.toJson().toString().toBytes());
+        if pubCdcErr1 is error { log:printError("Failed to publish CDC event to broker", 'error = pubCdcErr1); }
         return <http:Ok>{};
     }
 
@@ -59,6 +62,9 @@ service /social on ep {
         if result is error {
             return <http:InternalServerError> { body: result.message() };
         }
+        var cdcEventUnlike = {eventType: "CDC_EVENT", participants: [userId], delta: {entity: "LIKE", action: "REMOVED", postId: postId}};
+        error? pubCdcErr2 = eventBroker.publishEvent("events", cdcEventUnlike.toJson().toString().toBytes());
+        if pubCdcErr2 is error { log:printError("Failed to publish CDC event to broker", 'error = pubCdcErr2); }
         return <http:Ok>{};
     }
 
