@@ -487,6 +487,9 @@ dependencies = [
 	{org = "ballerinax", name = "confluent.cavroserdes"},
 	{org = "ballerinax", name = "confluent.cregistry"}
 ]
+modules = [
+	{org = "ballerinax", packageName = "kafka", moduleName = "kafka"}
+]
 
 [[package]]
 org = "ballerinax"
@@ -525,11 +528,13 @@ dependencies = [
 	{org = "ballerina", name = "uuid"},
 	{org = "ballerina", name = "websocket"},
 	{org = "ballerinai", name = "observe"},
+	{org = "ballerinax", name = "kafka"},
 	{org = "ballerinax", name = "postgresql"}
 ]
 modules = [
 	{org = "jules", packageName = "ballegram", moduleName = "ballegram"},
 	{org = "jules", packageName = "ballegram", moduleName = "ballegram.auth"},
+	{org = "jules", packageName = "ballegram", moduleName = "ballegram.broker"},
 	{org = "jules", packageName = "ballegram", moduleName = "ballegram.chat"},
 	{org = "jules", packageName = "ballegram", moduleName = "ballegram.common"},
 	{org = "jules", packageName = "ballegram", moduleName = "ballegram.media"},

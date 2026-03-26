@@ -4,6 +4,7 @@ import ballegram.auth;
 import ballegram.media;
 import ballegram.chat;
 import ballegram.social;
+import ballegram.broker;
 
 // Provide default values that match docker-compose.yml to ensure container starts successfully
 configurable common:DatabaseConfig databaseConfig = {
@@ -62,3 +63,10 @@ configurable Neo4jConfig neo4jConfig = {
 final social:GraphClient graphDb = check new social:Neo4jGraphClient(neo4jConfig.url, neo4jConfig.username, neo4jConfig.password);
 
 public listener http:Listener ep = new(9090);
+
+configurable broker:BrokerConfig brokerConfig = {
+    bootstrapServers: "localhost:9093",
+    mockMode: false
+};
+
+final broker:EventBroker eventBroker = check new broker:EventBroker(brokerConfig);

@@ -27,7 +27,7 @@ class PostRetentionJob {
     }
 }
 
-function init() {
+function init() returns error? {
     // Schedule jobs to run daily at midnight (approx 86400 seconds)
     // using scheduleJobRecurByFrequency
     do {
@@ -37,4 +37,6 @@ function init() {
     } on fail error e {
         log:printError("Failed to schedule retention jobs: " + e.message());
     }
+
+    check startKafkaListener();
 }

@@ -1,3 +1,4 @@
+import ballerina/log;
 import ballerina/http;
 import ballerina/jwt;
 import ballegram.social;
@@ -43,6 +44,8 @@ service /social on ep {
         if result is error {
             return <http:InternalServerError> { body: result.message() };
         }
+        var likeEvent = {eventType: "LIKE", postId: postId, userId: userId};
+        error? pubErr = eventBroker.publishEvent("events", likeEvent.toJson().toString().toBytes()); if pubErr is error { log:printError("Failed to publish event to broker", 'error = pubErr); }
         return <http:Ok>{};
     }
 
@@ -74,6 +77,8 @@ service /social on ep {
         if comment is error {
             return <http:InternalServerError> { body: comment.message() };
         }
+        var commentEvent = {eventType: "COMMENT", postId: postId, userId: userId, commentId: comment.id};
+        error? pubErr = eventBroker.publishEvent("events", commentEvent.toJson().toString().toBytes()); if pubErr is error { log:printError("Failed to publish event to broker", 'error = pubErr); }
 
         social:CommentResponse response = {
             id: comment.id,
