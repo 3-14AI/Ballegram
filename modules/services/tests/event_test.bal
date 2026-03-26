@@ -29,3 +29,13 @@ function testRouteEventSocial() returns error? {
 
     check routeEvent(socialEvent);
 }
+
+@test:Config {}
+function testRouteEventCdc() returns error? {
+    json cdcEvent = {
+        eventType: "CDC_EVENT",
+        participants: [1, 2],
+        delta: {entity: "LIKE", action: "ADDED", postId: 100}
+    };
+    check routeEvent(cdcEvent);
+}
