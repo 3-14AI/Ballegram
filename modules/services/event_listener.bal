@@ -1,12 +1,6 @@
 import ballerinax/kafka;
 import ballerina/log;
 
-listener kafka:Listener kafkaListener = new (brokerConfig.bootstrapServers, {
-    groupId: "ballegram-events-group",
-    topics: "events",
-    clientId: "ballegram-consumer"
-});
-
 public isolated function routeEvent(json msgJson) returns error? {
     if msgJson is map<json> {
         if msgJson.hasKey("eventType") {
@@ -36,7 +30,25 @@ public isolated function routeEvent(json msgJson) returns error? {
     }
 }
 
-service on kafkaListener {
+public function startKafkaListener() returns error? {
+    if brokerConfig.mockMode {
+        log:printInfo("Broker is in mock mode. Skipping listener initialization.");
+        return;
+    }
+
+    kafka:Listener kafkaListener = check new (brokerConfig.bootstrapServers, {
+        groupId: "ballegram-events-group",
+        topics: "events",
+        clientId: "ballegram-consumer"
+    });
+
+    check kafkaListener.attach(kafkaService);
+    check kafkaListener.'start();
+}
+
+service class KafkaService {
+    *kafka:Service;
+
     remote function onConsumerRecord(kafka:Caller caller, kafka:BytesConsumerRecord[] records) returns error? {
         foreach kafka:BytesConsumerRecord recordValue in records {
             byte[] msgBytes = recordValue.value;
@@ -57,3 +69,5 @@ service on kafkaListener {
         }
     }
 }
+
+final KafkaService kafkaService = new;

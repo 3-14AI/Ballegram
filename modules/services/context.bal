@@ -65,7 +65,8 @@ final social:GraphClient graphDb = check new social:Neo4jGraphClient(neo4jConfig
 public listener http:Listener ep = new(9090);
 
 configurable broker:BrokerConfig brokerConfig = {
-    bootstrapServers: "localhost:9092"
+    bootstrapServers: "localhost:9093",
+    mockMode: false
 };
 
 final broker:EventBroker eventBroker = check new broker:EventBroker(brokerConfig);
