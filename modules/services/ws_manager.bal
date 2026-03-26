@@ -41,8 +41,6 @@ public isolated class ConnectionManager {
                     foreach int i in 0 ..< callers.length() {
                         websocket:Caller caller = callers[i];
                         // Ignore errors during broadcast
-                        // It's safe to invoke remote isolated methods within the lock block if we just ignore them
-                        // However, writeMessage might be blocking. Ballerina allows it if caller is isolated object.
                         error? result = caller->writeMessage(message);
                         if result is error {
                             // Ignore
