@@ -78,3 +78,13 @@ public isolated function getChatParticipants(DbClient db, int chatId) returns in
 
     return participantIds;
 }
+
+# Retrieves missed chat messages from the NoSQL database.
+#
+# + db - The message store client
+# + chatId - The chat ID
+# + lastMessageId - The last known message ID
+# + return - A stream of Messages or error
+public isolated function getMissedMessages(MessageStoreClient db, int chatId, int lastMessageId) returns stream<Message, error?>|error {
+    return db->getMessagesSince(chatId, lastMessageId);
+}

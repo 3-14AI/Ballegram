@@ -4,6 +4,7 @@ import ballerina/time;
 public type MessageStoreClient isolated client object {
     isolated remote function saveMessage(int chatId, int senderId, string content) returns Message|error;
     isolated remote function getChatHistory(int chatId) returns stream<Message, error?>|error;
+    isolated remote function getMessagesSince(int chatId, int lastMessageId) returns stream<Message, error?>|error;
     isolated remote function deleteOldMessages(int retentionSeconds) returns error?;
 };
 
@@ -79,6 +80,59 @@ public isolated client class OpenSearchMessageClient {
             "query": {
                 "term": {
                     "chat_id": chatId
+                }
+            },
+            "sort": [
+                { "created_at_0": { "order": "asc" } },
+                { "created_at_1": { "order": "asc" } }
+            ]
+        };
+
+        http:Response resp = check self.osHttp->post("/" + self.indexName + "/_search", queryPayload);
+        json resJson = check resp.getJsonPayload();
+
+        Message[] messages = [];
+
+        json hitsWrapper = check resJson.hits;
+        json[] hitsArray = check hitsWrapper.hits.ensureType();
+
+        foreach json hit in hitsArray {
+            map<json> hitMap = check hit.ensureType();
+            map<json> src = check hitMap["_source"].ensureType();
+
+            int id = check int:fromString(src["id"].toString());
+            int cId = check int:fromString(src["chat_id"].toString());
+            int? sId = ();
+            if src["sender_id"] != () {
+                sId = check int:fromString(src["sender_id"].toString());
+            }
+            string content = src["content"].toString();
+
+            int t0 = check int:fromString(src["created_at_0"].toString());
+            decimal t1 = check decimal:fromString(src["created_at_1"].toString());
+            time:Utc createdAt = [t0, t1];
+
+            messages.push({
+                id: id,
+                chat_id: cId,
+                sender_id: sId,
+                content: content,
+                created_at: createdAt
+            });
+        }
+
+        return new stream<Message, error?>(new MessageStream(messages.cloneReadOnly()));
+    }
+
+    isolated remote function getMessagesSince(int chatId, int lastMessageId) returns stream<Message, error?>|error {
+        json queryPayload = {
+            "size": 1000,
+            "query": {
+                "bool": {
+                    "must": [
+                        { "term": { "chat_id": chatId } },
+                        { "range": { "id": { "gt": lastMessageId } } }
+                    ]
                 }
             },
             "sort": [
