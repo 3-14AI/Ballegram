@@ -34,3 +34,20 @@ public isolated function getFeed(DbClient db, int limitCount = 10, int offsetCou
         };
     return posts;
 }
+
+public isolated function editPost(DbClient db, int postId, int userId, EditPostRequest req) returns Post|error {
+    sql:ParameterizedQuery query = `
+        UPDATE posts
+        SET content = ${req.content}, media_url = ${req.media_url}, version = ${req.version} + 1
+        WHERE id = ${postId} AND user_id = ${userId} AND version <= ${req.version}
+        RETURNING id, user_id, content, media_url, created_at, version
+    `;
+    GenericRecord|sql:Error result = db->queryRow(query);
+    if result is sql:NoRowsError {
+        return error("Post not found, unauthorized, or version conflict");
+    }
+    if result is error {
+        return result;
+    }
+    return result.cloneWithType(Post);
+}

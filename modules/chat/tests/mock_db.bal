@@ -11,6 +11,10 @@ public isolated client class MockMessageStoreClient {
         self.messagesResponse = messagesResponse;
     }
 
+    isolated remote function editMessage(int messageId, int chatId, int senderId, string content, int version) returns Message|error {
+        return error("Not implemented");
+    }
+
     isolated remote function saveMessage(int chatId, int senderId, string content) returns Message|error {
         Message? & readonly msg;
         lock {

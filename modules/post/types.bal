@@ -6,9 +6,16 @@ public type Post record {|
     string? content;
     string? media_url;
     time:Utc created_at;
+    int version = 1;
 |};
 
 public type CreatePostRequest record {|
     string? content;
     string? media_url;
+|};
+
+public type EditPostRequest record {|
+    string? content;
+    string? media_url;
+    int version;
 |};

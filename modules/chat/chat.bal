@@ -88,3 +88,16 @@ public isolated function getChatParticipants(DbClient db, int chatId) returns in
 public isolated function getMissedMessages(MessageStoreClient db, int chatId, int lastMessageId) returns stream<Message, error?>|error {
     return db->getMessagesSince(chatId, lastMessageId);
 }
+
+# Edits a message in the NoSQL database.
+#
+# + db - The message store client
+# + messageId - The message ID
+# + chatId - The chat ID
+# + senderId - The sender's user ID
+# + content - The new message content
+# + version - The current version of the message
+# + return - The updated Message or error
+public isolated function editMessage(MessageStoreClient db, int messageId, int chatId, int senderId, string content, int version) returns Message|error {
+    return db->editMessage(messageId, chatId, senderId, content, version);
+}

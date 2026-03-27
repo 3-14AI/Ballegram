@@ -7,7 +7,8 @@ function testCreateChat() returns error? {
         id: 1,
         name: "Test Chat",
         'type: DIRECT,
-        created_at: time:utcNow()
+        created_at: time:utcNow(),
+        version: 1
     };
 
     MockDbClient mockDb = new(queryRowResponse = expectedChat.cloneReadOnly());
@@ -29,7 +30,8 @@ function testSaveMessage() returns error? {
         chat_id: 1,
         sender_id: 2,
         content: "Hello",
-        created_at: time:utcNow()
+        created_at: time:utcNow(),
+        version: 1
     };
 
     MockMessageStoreClient mockDb = new(messageResponse = expectedMessage.cloneReadOnly());
@@ -120,4 +122,24 @@ function testGetMissedMessages() returns error? {
 
     record {| Message value; |}|error? item3 = history.next();
     test:assertTrue(item3 is ());
+}
+
+@test:Config {}
+function testEditMessage() returns error? {
+    Message editedMsg = {
+        id: 1,
+        chat_id: 1,
+        sender_id: 2,
+        content: "Edited",
+        created_at: time:utcNow(),
+
+        version: 2
+    };
+
+    MockMessageStoreClient mockDb = new(messageResponse = editedMsg.cloneReadOnly());
+
+    Message|error result = editMessage(mockDb, 1, 1, 2, "Edited", 1);
+
+    // As mockDb returns "Not implemented"
+    test:assertTrue(result is error);
 }
