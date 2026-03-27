@@ -3,6 +3,7 @@ import ballerina/http;
 import ballerina/jwt;
 import ballegram.social;
 import ballegram.auth;
+import ballegram.post;
 
 // Helper function to extract user ID from JWT token
 isolated function getUserId(http:Request req) returns int|error {
@@ -29,6 +30,7 @@ isolated function getUserId(http:Request req) returns int|error {
     }
     return error("Invalid user ID in token");
 }
+
 
 service /social on ep {
 
@@ -179,5 +181,26 @@ service /social on ep {
             });
         }
         return summaries;
+    }
+
+
+    // --- Edit Posts ---
+
+    isolated resource function put posts/[int postId](http:Request req, @http:Payload post:EditPostRequest editReq) returns post:Post|http:Unauthorized|http:InternalServerError|http:Forbidden {
+        int|error userId = getUserId(req);
+        if userId is error {
+            return <http:Unauthorized> { body: userId.message() };
+        }
+
+        post:Post|error editedPost = post:editPost(db, postId, userId, editReq);
+        if editedPost is error {
+            return <http:InternalServerError> { body: "Failed to edit post: " + editedPost.message() };
+        }
+
+        var cdcEventEdit = {eventType: "CDC_EVENT", participants: [userId], delta: {entity: "POST", action: "UPDATED", postId: postId}};
+        error? pubCdcErr = eventBroker.publishEvent("events", cdcEventEdit.toJson().toString().toBytes());
+        if pubCdcErr is error { log:printError("Failed to publish CDC event to broker", 'error = pubCdcErr); }
+
+        return editedPost;
     }
 }

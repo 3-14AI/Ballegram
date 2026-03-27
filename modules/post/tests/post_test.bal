@@ -11,13 +11,15 @@ public isolated client class MockDbClient {
     }
 
     isolated remote function queryRow(sql:ParameterizedQuery sqlQuery, typedesc<GenericRecord>? rowType = ()) returns GenericRecord|sql:Error {
-        // Mock returning a created post record
-        // The values here should match what we expect in the test assertions
+        if self.queryResults.length() > 0 {
+            return self.queryResults[0];
+        }
         return {
             "id": 1,
             "user_id": 1,
             "content": "Test Content",
             "media_url": "http://example.com/image.jpg",
+            "version": 1,
             "created_at": time:utcNow()
         };
     }
@@ -87,6 +89,7 @@ function testGetFeed() returns error? {
             "user_id": 1,
             "content": "Newest Post",
             "media_url": (),
+        "version": 1,
             "created_at": time:utcNow()
         },
         {
@@ -94,6 +97,7 @@ function testGetFeed() returns error? {
             "user_id": 1,
             "content": "Old Post",
             "media_url": (),
+        "version": 1,
             "created_at": time:utcNow()
         }
     ];
@@ -105,4 +109,30 @@ function testGetFeed() returns error? {
     test:assertEquals(posts.length(), 2);
     test:assertEquals(posts[0].content, "Newest Post");
     test:assertEquals(posts[1].content, "Old Post");
+}
+
+@test:Config {}
+function testEditPost() returns error? {
+    MockDbClient db = new([{
+        "id": 1,
+        "user_id": 1,
+        "content": "Updated Content",
+        "media_url": "http://example.com/updated.jpg",
+        "created_at": time:utcNow(),
+        "version": 2
+    }]);
+
+    EditPostRequest req = {
+        content: "Updated Content",
+        media_url: "http://example.com/updated.jpg",
+        version: 1
+    };
+
+    Post post = check editPost(db, 1, 1, req);
+
+    test:assertEquals(post.id, 1);
+    test:assertEquals(post.user_id, 1);
+    test:assertEquals(post.content, "Updated Content");
+    test:assertEquals(post.media_url, "http://example.com/updated.jpg");
+    test:assertEquals(post.version, 2);
 }

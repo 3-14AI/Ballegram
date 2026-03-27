@@ -10,6 +10,7 @@ public type Chat record {|
     string? name;
     ChatType 'type;
     time:Utc created_at;
+    int version = 1;
 |};
 
 public type Message record {|
@@ -18,4 +19,10 @@ public type Message record {|
     int? sender_id;
     string content;
     time:Utc created_at;
+    int version = 1;
+|};
+
+public type EditMessageRequest record {|
+    string content;
+    int version;
 |};

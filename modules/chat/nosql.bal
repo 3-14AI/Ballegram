@@ -4,6 +4,7 @@ import ballerina/time;
 public type MessageStoreClient isolated client object {
     isolated remote function saveMessage(int chatId, int senderId, string content) returns Message|error;
     isolated remote function getChatHistory(int chatId) returns stream<Message, error?>|error;
+    isolated remote function editMessage(int messageId, int chatId, int senderId, string content, int version) returns Message|error;
     isolated remote function getMessagesSince(int chatId, int lastMessageId) returns stream<Message, error?>|error;
     isolated remote function deleteOldMessages(int retentionSeconds) returns error?;
 };
@@ -175,6 +176,75 @@ public isolated client class OpenSearchMessageClient {
         }
 
         return new stream<Message, error?>(new MessageStream(messages.cloneReadOnly()));
+    }
+
+    isolated remote function editMessage(int messageId, int chatId, int senderId, string content, int version) returns Message|error {
+        json getQueryPayload = {
+            "query": {
+                "term": {
+                    "id": messageId
+                }
+            }
+        };
+
+        http:Response getResp = check self.osHttp->post("/" + self.indexName + "/_search", getQueryPayload);
+        json resJson = check getResp.getJsonPayload();
+
+        json hitsWrapper = check resJson.hits;
+        json[] hitsArray = check hitsWrapper.hits.ensureType();
+
+        if hitsArray.length() == 0 {
+            return error("Message not found");
+        }
+
+        map<json> hitMap = check hitsArray[0].ensureType();
+        map<json> src = check hitMap["_source"].ensureType();
+
+        int currentVersion = 1;
+        if src.hasKey("version") {
+            currentVersion = check int:fromString(src["version"].toString());
+        }
+
+        if currentVersion > version {
+            return error("Message version conflict");
+        }
+
+        int sId = check int:fromString(src["sender_id"].toString());
+        if sId != senderId {
+            return error("Unauthorized");
+        }
+
+        int cId = check int:fromString(src["chat_id"].toString());
+        if cId != chatId {
+            return error("Chat ID mismatch");
+        }
+
+        int t0 = check int:fromString(src["created_at_0"].toString());
+        decimal t1 = check decimal:fromString(src["created_at_1"].toString());
+        time:Utc createdAt = [t0, t1];
+
+        int newVersion = currentVersion + 1;
+
+        map<json> doc = {
+            "doc": {
+                "content": content,
+                "version": newVersion
+            }
+        };
+
+        string docId = hitMap["_id"].toString();
+        http:Response postRes = check self.osHttp->post("/" + self.indexName + "/_update/" + docId, doc);
+
+        Message msg = {
+            id: messageId,
+            chat_id: chatId,
+            sender_id: senderId,
+            content: content,
+            created_at: createdAt,
+            version: newVersion
+        };
+
+        return msg;
     }
 
     isolated remote function deleteOldMessages(int retentionSeconds) returns error? {
