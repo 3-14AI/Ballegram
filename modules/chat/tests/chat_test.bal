@@ -84,3 +84,40 @@ function testDeleteOldMessages() returns error? {
     error? result = mockDb->deleteOldMessages(157680000);
     test:assertTrue(result is ());
 }
+
+@test:Config {}
+function testGetMissedMessages() returns error? {
+    Message msg1 = {
+        id: 1, chat_id: 1, sender_id: 1, content: "Hi", created_at: time:utcNow()
+    };
+    Message msg2 = {
+        id: 2, chat_id: 1, sender_id: 2, content: "Hello", created_at: time:utcNow()
+    };
+    Message msg3 = {
+        id: 3, chat_id: 1, sender_id: 1, content: "How are you?", created_at: time:utcNow()
+    };
+
+    MockMessageStoreClient mockDb = new(messagesResponse = [msg1, msg2, msg3].cloneReadOnly());
+
+    stream<Message, error?>|error historyRes = getMissedMessages(mockDb, 1, 1);
+    test:assertTrue(historyRes is stream<Message, error?>);
+    if historyRes is error {
+        return historyRes;
+    }
+    stream<Message, error?> history = historyRes;
+
+    record {| Message value; |}|error? item1 = history.next();
+    test:assertTrue(item1 is record {| Message value; |});
+    if item1 is record {| Message value; |} {
+        test:assertEquals(item1.value.id, 2);
+    }
+
+    record {| Message value; |}|error? item2 = history.next();
+    test:assertTrue(item2 is record {| Message value; |});
+    if item2 is record {| Message value; |} {
+        test:assertEquals(item2.value.id, 3);
+    }
+
+    record {| Message value; |}|error? item3 = history.next();
+    test:assertTrue(item3 is ());
+}

@@ -22,6 +22,20 @@ public isolated client class MockMessageStoreClient {
         return error("Mock message response not configured");
     }
 
+    isolated remote function getMessagesSince(int chatId, int lastMessageId) returns stream<Message, error?>|error {
+        Message[] & readonly msgs;
+        lock {
+            msgs = self.messagesResponse;
+        }
+        Message[] filtered = [];
+        foreach Message msg in msgs {
+            if msg.chat_id == chatId && msg.id > lastMessageId {
+                filtered.push(msg);
+            }
+        }
+        return new stream<Message, error?>(new MockMessageStream2(filtered.cloneReadOnly()));
+    }
+
     isolated remote function getChatHistory(int chatId) returns stream<Message, error?>|error {
         Message[] & readonly msgs;
         lock {
