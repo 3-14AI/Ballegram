@@ -32,6 +32,16 @@ public isolated class ConnectionManager {
         }
     }
 
+    public isolated function hasConnection(int userId) returns boolean {
+        lock {
+            string key = userId.toString();
+            if self.connections.hasKey(key) {
+                return self.connections.get(key).length() > 0;
+            }
+            return false;
+        }
+    }
+
     public isolated function broadcast(int[] userIds, anydata & readonly message) {
         foreach int userId in userIds {
             lock {

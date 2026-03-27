@@ -59,3 +59,12 @@ CREATE TABLE IF NOT EXISTS follows (
     PRIMARY KEY (follower_id, following_id),
     CHECK (follower_id != following_id)
 );
+
+CREATE TABLE IF NOT EXISTS device_tokens (
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    device_id VARCHAR(255) NOT NULL,
+    token VARCHAR(255) NOT NULL,
+    provider VARCHAR(20) NOT NULL CHECK (provider IN ('FCM', 'APNS')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, device_id)
+);
