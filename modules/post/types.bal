@@ -19,3 +19,13 @@ public type EditPostRequest record {|
     string? media_url;
     int version;
 |};
+
+public type FeedItem record {|
+    string source_type; // "USER", "GROUP", "GLOBAL"
+    int id;
+    int author_id;
+    string? content;
+    string? media_url;
+    time:Utc created_at;
+    int? group_id = ();
+|};
