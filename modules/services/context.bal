@@ -5,6 +5,7 @@ import ballegram.media;
 import ballegram.chat;
 import ballegram.social;
 import ballegram.broker;
+import ballegram.push;
 
 // Provide default values that match docker-compose.yml to ensure container starts successfully
 configurable common:DatabaseConfig databaseConfig = {
@@ -70,3 +71,23 @@ configurable broker:BrokerConfig brokerConfig = {
 };
 
 final broker:EventBroker eventBroker = check new broker:EventBroker(brokerConfig);
+
+public type PushConfig record {|
+    string fcmProjectId;
+    string fcmAccessToken;
+    string apnsEnvUrl;
+    string apnsBundleId;
+    string apnsAuthToken;
+|};
+
+configurable PushConfig pushConfig = {
+    fcmProjectId: "dummy-project-id",
+    fcmAccessToken: "dummy-server-key",
+    apnsEnvUrl: "https://api.development.push.apple.com",
+    apnsBundleId: "com.ballegram.app",
+    apnsAuthToken: "dummy-auth-token"
+};
+
+final push:PushProvider fcmProvider = check new push:FCMPushProvider(pushConfig.fcmProjectId, pushConfig.fcmAccessToken);
+final push:PushProvider apnsProvider = check new push:APNsPushProvider(pushConfig.apnsEnvUrl, pushConfig.apnsBundleId, pushConfig.apnsAuthToken);
+final push:CompositePushProvider pushProvider = new push:CompositePushProvider(fcmProvider, apnsProvider);

@@ -27,4 +27,8 @@ public isolated client class Database {
         }
         return self.db->query(sqlQuery);
     }
+
+    isolated remote function execute(sql:ParameterizedQuery sqlQuery) returns sql:ExecutionResult|sql:Error {
+        return self.db->execute(sqlQuery);
+    }
 }

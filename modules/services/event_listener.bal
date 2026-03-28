@@ -1,5 +1,6 @@
 import ballerinax/kafka;
 import ballerina/log;
+import ballegram.push;
 
 public isolated function routeEvent(json msgJson) returns error? {
     if msgJson is map<json> {
@@ -21,6 +22,22 @@ public isolated function routeEvent(json msgJson) returns error? {
                     json|error payload = msgJson.get("payload");
                     if payload is json {
                         connectionManager.broadcast(participants, payload.cloneReadOnly());
+                        // Send push notifications to offline users
+                        foreach int participantId in participants {
+                            if !connectionManager.hasConnection(participantId) {
+                                push:DeviceToken[]|error tokens = push:getUserTokens(db, participantId);
+                                if tokens is push:DeviceToken[] {
+                                    string textBody = "New message";
+                                    map<json>|error plMap = payload.ensureType();
+                                    if plMap is map<json> && plMap.hasKey("content") {
+                                        textBody = plMap.get("content").toString();
+                                    }
+                                    foreach push:DeviceToken t in tokens {
+                                        _ = start pushProvider->routeNotification(t.provider, t.token, "Ballegram", textBody);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             } else if eventType == "CDC_EVENT" {
