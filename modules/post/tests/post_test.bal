@@ -136,3 +136,36 @@ function testEditPost() returns error? {
     test:assertEquals(post.media_url, "http://example.com/updated.jpg");
     test:assertEquals(post.version, 2);
 }
+
+@test:Config {}
+function testGetAggregatedFeed() returns error? {
+    GenericRecord[] mockData = [
+        {
+            "source_type": "GROUP",
+            "id": 100,
+            "author_id": 2,
+            "content": "Group message",
+            "media_url": (),
+            "created_at": time:utcNow(),
+            "group_id": 10
+        },
+        {
+            "source_type": "GLOBAL",
+            "id": 50,
+            "author_id": 1,
+            "content": "Global post",
+            "media_url": "http://example.com/pic.jpg",
+            "created_at": time:utcNow(),
+            "group_id": ()
+        }
+    ];
+
+    MockDbClient db = new(mockData);
+
+    FeedItem[] feedItems = check getAggregatedFeed(db, 1);
+    test:assertEquals(feedItems.length(), 2);
+    test:assertEquals(feedItems[0].source_type, "GROUP");
+    test:assertEquals(feedItems[0].id, 100);
+    test:assertEquals(feedItems[1].source_type, "GLOBAL");
+    test:assertEquals(feedItems[1].id, 50);
+}

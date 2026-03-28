@@ -51,3 +51,48 @@ public isolated function editPost(DbClient db, int postId, int userId, EditPostR
     }
     return result.cloneWithType(Post);
 }
+
+public isolated function getAggregatedFeed(DbClient db, int userId, int limitCount = 10, int offsetCount = 0) returns FeedItem[]|error {
+    if limitCount < 0 || offsetCount < 0 {
+        return error("Limit and offset must be non-negative");
+    }
+
+    // Query to aggregate:
+    // 1. Global posts (from user themselves and maybe others if we follow them, but requirement says "от самого пользователя, групп и глобальной ленты" - meaning we can include all posts for 'global', or just all posts in the system for now as 'global feed', plus user's own posts, plus messages from groups the user is a participant of)
+    // Actually, "от самого пользователя, групп и глобальной ленты" means:
+    // - User's own posts ("USER" or "GLOBAL")
+    // - All posts globally (could be just all posts) -> "GLOBAL"
+    // - Group messages where user is a participant -> "GROUP"
+    //
+    // Let's do a UNION ALL:
+    // SELECT 'GLOBAL' as source_type, p.id, p.user_id as author_id, p.content, p.media_url, p.created_at, NULL as group_id FROM posts p
+    // UNION ALL
+    // SELECT 'GROUP' as source_type, m.id, m.sender_id as author_id, m.content, NULL as media_url, m.created_at, m.chat_id as group_id
+    // FROM messages m
+    // JOIN chats c ON m.chat_id = c.id
+    // JOIN chat_participants cp ON c.id = cp.chat_id
+    // WHERE c.type = 'GROUP' AND cp.user_id = ${userId}
+    // ORDER BY created_at DESC LIMIT ${limitCount} OFFSET ${offsetCount}
+
+    sql:ParameterizedQuery query = `
+        SELECT 'GLOBAL' as source_type, p.id, p.user_id as author_id, p.content, p.media_url, p.created_at, NULL as group_id
+        FROM posts p
+        UNION ALL
+        SELECT 'GROUP' as source_type, m.id, m.sender_id as author_id, m.content, NULL as media_url, m.created_at, m.chat_id as group_id
+        FROM messages m
+        JOIN chats c ON m.chat_id = c.id
+        JOIN chat_participants cp ON c.id = cp.chat_id
+        WHERE c.type = 'GROUP' AND cp.user_id = ${userId}
+        ORDER BY created_at DESC
+        LIMIT ${limitCount} OFFSET ${offsetCount}
+    `;
+
+    stream<GenericRecord, sql:Error?> resultStream = db->query(query);
+
+    FeedItem[] feed = [];
+    check from GenericRecord row in resultStream
+        do {
+            feed.push(check row.cloneWithType(FeedItem));
+        };
+    return feed;
+}

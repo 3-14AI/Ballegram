@@ -34,6 +34,20 @@ isolated function getUserId(http:Request req) returns int|error {
 
 service /social on ep {
 
+    isolated resource function get feed(http:Request req, int limitCount = 10, int offsetCount = 0) returns post:FeedItem[]|http:Unauthorized|http:InternalServerError {
+        int|error userId = getUserId(req);
+        if userId is error {
+            return <http:Unauthorized> { body: userId.message() };
+        }
+
+        post:FeedItem[]|error feed = post:getAggregatedFeed(db, userId, limitCount, offsetCount);
+        if feed is error {
+            return <http:InternalServerError> { body: feed.message() };
+        }
+        return feed;
+    }
+
+
     // --- Likes ---
 
     isolated resource function post posts/[int postId]/like(http:Request req) returns http:Ok|http:Unauthorized|http:InternalServerError {

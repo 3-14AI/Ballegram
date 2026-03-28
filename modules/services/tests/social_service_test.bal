@@ -2,6 +2,7 @@ import ballerina/test;
 import ballerina/http;
 import ballerina/time;
 import ballegram.auth;
+import ballegram.post;
 
 http:Client socialClient = check new("http://localhost:9090/social");
 
@@ -58,5 +59,53 @@ function testSearchUsersEmpty() returns error? {
 @test:Config {}
 function testSearchUsersError() returns error? {
     http:Response res = check socialClient->get("/users?q=error");
+    test:assertEquals(res.statusCode, 500);
+}
+
+
+@test:Mock { moduleName: "ballegram.post", functionName: "getAggregatedFeed" }
+isolated function mockGetAggregatedFeed(post:DbClient db, int userId, int limitCount = 10, int offsetCount = 0) returns post:FeedItem[]|error {
+    if userId == 999 {
+        return error("DB Error");
+    }
+    return [
+        {
+            "source_type": "GROUP",
+            "id": 100,
+            "author_id": 2,
+            "content": "Group message",
+            "media_url": (),
+            "created_at": time:utcNow(),
+            "group_id": 10
+        },
+        {
+            "source_type": "GLOBAL",
+            "id": 50,
+            "author_id": 1,
+            "content": "Global post",
+            "media_url": "http://example.com/pic.jpg",
+            "created_at": time:utcNow(),
+            "group_id": ()
+        }
+    ];
+}
+
+@test:Config {}
+function testGetFeedSuccess() returns error? {
+    http:Response res = check socialClient->get("/feed", {"Authorization": "Bearer MOCK_VALID_JWT_1"});
+    test:assertEquals(res.statusCode, 200);
+
+    json payload = check res.getJsonPayload();
+    json[] items = <json[]>payload;
+    test:assertEquals(items.length(), 2);
+
+    map<json> item1 = <map<json>>items[0];
+    test:assertEquals(item1["source_type"], "GROUP");
+    test:assertEquals(item1["id"], 100);
+}
+
+@test:Config {}
+function testGetFeedDbError() returns error? {
+    http:Response res = check socialClient->get("/feed", {"Authorization": "Bearer MOCK_VALID_JWT_999"});
     test:assertEquals(res.statusCode, 500);
 }
