@@ -15,7 +15,7 @@ type ApprovePayload record {|
 |};
 
 // WebSocket Service for New Devices to listen for approval
-service /devices/link on new websocket:Listener(9093) {
+service /devices/link on new websocket:Listener(9095) {
     resource function get . () returns websocket:Service {
         return new DeviceLinkWsService();
     }
