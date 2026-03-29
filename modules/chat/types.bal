@@ -20,6 +20,9 @@ public type Message record {|
     string content;
     time:Utc created_at;
     int version = 1;
+    int[] read_by = [];
+    int read_count = 0;
+    boolean is_read = false;
 |};
 
 public type EditMessageRequest record {|
