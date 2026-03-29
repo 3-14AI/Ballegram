@@ -537,6 +537,7 @@ modules = [
 	{org = "jules", packageName = "ballegram", moduleName = "ballegram.broker"},
 	{org = "jules", packageName = "ballegram", moduleName = "ballegram.chat"},
 	{org = "jules", packageName = "ballegram", moduleName = "ballegram.common"},
+	{org = "jules", packageName = "ballegram", moduleName = "ballegram.devices"},
 	{org = "jules", packageName = "ballegram", moduleName = "ballegram.media"},
 	{org = "jules", packageName = "ballegram", moduleName = "ballegram.post"},
 	{org = "jules", packageName = "ballegram", moduleName = "ballegram.push"},
