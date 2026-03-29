@@ -36,7 +36,7 @@ function testSaveMessage() returns error? {
 
     MockMessageStoreClient mockDb = new(messageResponse = expectedMessage.cloneReadOnly());
 
-    Message|error result = saveMessage(mockDb, 1, 2, "Hello");
+    Message|error result = saveMessage(mockDb, 1, 2, "Hello", true);
 
     test:assertTrue(result is Message);
     if result is Message {
@@ -138,7 +138,7 @@ function testEditMessage() returns error? {
 
     MockMessageStoreClient mockDb = new(messageResponse = editedMsg.cloneReadOnly());
 
-    Message|error result = editMessage(mockDb, 1, 1, 2, "Edited", 1);
+    Message|error result = editMessage(mockDb, 1, 1, 2, "Edited", 1, true);
 
     // As mockDb returns "Not implemented"
     test:assertTrue(result is error);

@@ -23,9 +23,11 @@ public type Message record {|
     int[] read_by = [];
     int read_count = 0;
     boolean is_read = false;
+    boolean is_encrypted = false;
 |};
 
 public type EditMessageRequest record {|
     string content;
     int version;
+    boolean is_encrypted = false;
 |};
