@@ -50,16 +50,17 @@ public isolated client class MockMessageStoreClient {
             version: msg.version,
             read_by: currentReadBy,
             read_count: newReadCount,
-            is_read: newIsRead
+            is_read: newIsRead,
+            is_encrypted: msg.is_encrypted
         };
         return updatedMsg;
     }
 
-    isolated remote function editMessage(int messageId, int chatId, int senderId, string content, int version) returns Message|error {
+    isolated remote function editMessage(int messageId, int chatId, int senderId, string content, int version, boolean isEncrypted = false) returns Message|error {
         return error("Not implemented");
     }
 
-    isolated remote function saveMessage(int chatId, int senderId, string content) returns Message|error {
+    isolated remote function saveMessage(int chatId, int senderId, string content, boolean isEncrypted = false) returns Message|error {
         Message? & readonly msg;
         lock {
             msg = self.messageResponse;

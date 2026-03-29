@@ -155,7 +155,7 @@ service /chat on ep {
             return <http:Unauthorized> { body: "Invalid user ID in token" };
         }
 
-        chat:Message|error editedMsg = chat:editMessage(messageDb, messageId, chatId, userId, editReq.content, editReq.version);
+        chat:Message|error editedMsg = chat:editMessage(messageDb, messageId, chatId, userId, editReq.content, editReq.version, editReq.is_encrypted);
         if editedMsg is error {
             return <http:InternalServerError> { body: "Failed to edit message: " + editedMsg.message() };
         }

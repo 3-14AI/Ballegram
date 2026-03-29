@@ -8,6 +8,7 @@ final ConnectionManager connectionManager = new;
 type IncomingMessage record {|
     int chatId;
     string content;
+    boolean is_encrypted = false;
 |};
 
 public type ChatEvent record {|
@@ -78,7 +79,7 @@ service class ChatService {
              check caller->writeMessage("Error: Invalid message format");
              return;
         }
-        chat:Message|error savedMsg = chat:saveMessage(messageDb, msg.chatId, self.userId, msg.content);
+        chat:Message|error savedMsg = chat:saveMessage(messageDb, msg.chatId, self.userId, msg.content, msg.is_encrypted);
         if savedMsg is error {
              check caller->writeMessage("Error: Failed to save message");
              return;

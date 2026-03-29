@@ -2,10 +2,10 @@ import ballerina/http;
 import ballerina/time;
 
 public type MessageStoreClient isolated client object {
-    isolated remote function saveMessage(int chatId, int senderId, string content) returns Message|error;
+    isolated remote function saveMessage(int chatId, int senderId, string content, boolean isEncrypted) returns Message|error;
     isolated remote function getChatHistory(int chatId) returns stream<Message, error?>|error;
     isolated remote function markMessageAsRead(int messageId, int userId, ChatType chatType) returns Message|error;
-    isolated remote function editMessage(int messageId, int chatId, int senderId, string content, int version) returns Message|error;
+    isolated remote function editMessage(int messageId, int chatId, int senderId, string content, int version, boolean isEncrypted) returns Message|error;
     isolated remote function getMessagesSince(int chatId, int lastMessageId) returns stream<Message, error?>|error;
     isolated remote function deleteOldMessages(int retentionSeconds) returns error?;
 };
@@ -42,11 +42,11 @@ public isolated client class OpenSearchMessageClient {
                     }
                 }
             };
-            http:Response putRes = check self.osHttp->put("/" + self.indexName, mapping);
+            http:Response _ = check self.osHttp->put("/" + self.indexName, mapping);
         }
     }
 
-    isolated remote function saveMessage(int chatId, int senderId, string content) returns Message|error {
+    isolated remote function saveMessage(int chatId, int senderId, string content, boolean isEncrypted) returns Message|error {
         time:Utc now = time:utcNow();
         int timestampInt = now[0];
         int fractionInt = <int>(now[1] * 1000000.0d);
@@ -58,7 +58,8 @@ public isolated client class OpenSearchMessageClient {
             chat_id: chatId,
             sender_id: senderId,
             content: content,
-            created_at: now
+            created_at: now,
+            is_encrypted: isEncrypted
         };
 
         // Convert Utc array to a map for JSON serialization
@@ -71,7 +72,7 @@ public isolated client class OpenSearchMessageClient {
             "created_at_1": now[1]
         };
 
-        http:Response postRes = check self.osHttp->post("/" + self.indexName + "/_doc/" + messageId.toString(), doc);
+        http:Response _ = check self.osHttp->post("/" + self.indexName + "/_doc/" + messageId.toString(), doc);
 
         return msg;
     }
@@ -114,13 +115,21 @@ public isolated client class OpenSearchMessageClient {
             decimal t1 = check decimal:fromString(src["created_at_1"].toString());
             time:Utc createdAt = [t0, t1];
 
+
+            boolean isEncrypted = false;
+            if src.hasKey("is_encrypted") {
+                isEncrypted = check boolean:fromString(src["is_encrypted"].toString());
+            }
+
             messages.push({
                 id: id,
                 chat_id: cId,
                 sender_id: sId,
                 content: content,
-                created_at: createdAt
+                created_at: createdAt,
+                is_encrypted: isEncrypted
             });
+
         }
 
         return new stream<Message, error?>(new MessageStream(messages.cloneReadOnly()));
@@ -167,13 +176,21 @@ public isolated client class OpenSearchMessageClient {
             decimal t1 = check decimal:fromString(src["created_at_1"].toString());
             time:Utc createdAt = [t0, t1];
 
+
+            boolean isEncrypted = false;
+            if src.hasKey("is_encrypted") {
+                isEncrypted = check boolean:fromString(src["is_encrypted"].toString());
+            }
+
             messages.push({
                 id: id,
                 chat_id: cId,
                 sender_id: sId,
                 content: content,
-                created_at: createdAt
+                created_at: createdAt,
+                is_encrypted: isEncrypted
             });
+
         }
 
         return new stream<Message, error?>(new MessageStream(messages.cloneReadOnly()));
@@ -227,7 +244,7 @@ public isolated client class OpenSearchMessageClient {
 
         map<json> doc = {"doc": {"read_by": currentReadBy, "read_count": newReadCount, "is_read": newIsRead}};
         string docId = hitMap["_id"].toString();
-        http:Response postRes = check self.osHttp->post("/" + self.indexName + "/_update/" + docId, doc);
+        http:Response _ = check self.osHttp->post("/" + self.indexName + "/_update/" + docId, doc);
 
         int cId = check int:fromString(src["chat_id"].toString());
         int? sId = ();
@@ -238,9 +255,15 @@ public isolated client class OpenSearchMessageClient {
         int t0 = check int:fromString(src["created_at_0"].toString());
         decimal t1 = check decimal:fromString(src["created_at_1"].toString());
         time:Utc createdAt = [t0, t1];
+
         int ver = 1;
         if src.hasKey("version") {
             ver = check int:fromString(src["version"].toString());
+        }
+
+        boolean isEncrypted = false;
+        if src.hasKey("is_encrypted") {
+            isEncrypted = check boolean:fromString(src["is_encrypted"].toString());
         }
 
         Message msg = {
@@ -252,12 +275,14 @@ public isolated client class OpenSearchMessageClient {
             version: ver,
             read_by: currentReadBy,
             read_count: newReadCount,
-            is_read: newIsRead
+            is_read: newIsRead,
+            is_encrypted: isEncrypted
         };
+
         return msg;
     }
 
-    isolated remote function editMessage(int messageId, int chatId, int senderId, string content, int version) returns Message|error {
+    isolated remote function editMessage(int messageId, int chatId, int senderId, string content, int version, boolean isEncrypted) returns Message|error {
         json getQueryPayload = {
             "query": {
                 "term": {
@@ -304,15 +329,17 @@ public isolated client class OpenSearchMessageClient {
 
         int newVersion = currentVersion + 1;
 
+
         map<json> doc = {
             "doc": {
                 "content": content,
-                "version": newVersion
+                "version": newVersion,
+                "is_encrypted": isEncrypted
             }
         };
 
         string docId = hitMap["_id"].toString();
-        http:Response postRes = check self.osHttp->post("/" + self.indexName + "/_update/" + docId, doc);
+        http:Response _ = check self.osHttp->post("/" + self.indexName + "/_update/" + docId, doc);
 
         Message msg = {
             id: messageId,
@@ -320,8 +347,10 @@ public isolated client class OpenSearchMessageClient {
             sender_id: senderId,
             content: content,
             created_at: createdAt,
-            version: newVersion
+            version: newVersion,
+            is_encrypted: isEncrypted
         };
+
 
         return msg;
     }

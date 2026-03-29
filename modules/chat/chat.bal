@@ -41,12 +41,13 @@ public isolated function createChat(DbClient db, int[] participantIds, ChatType 
 # + chatId - The chat ID
 # + senderId - The sender's user ID
 # + content - The message content
+# + isEncrypted - Whether the message is e2ee encrypted
 # + return - The created Message or error
-public isolated function saveMessage(MessageStoreClient db, int chatId, int senderId, string content) returns Message|error {
+public isolated function saveMessage(MessageStoreClient db, int chatId, int senderId, string content, boolean isEncrypted = false) returns Message|error {
     if content.length() > 4000 {
         return error("Message content exceeds 4000 characters limit");
     }
-    return db->saveMessage(chatId, senderId, content);
+    return db->saveMessage(chatId, senderId, content, isEncrypted);
 }
 
 # Retrieves chat history from the NoSQL database.
@@ -100,12 +101,13 @@ public isolated function getMissedMessages(MessageStoreClient db, int chatId, in
 # + senderId - The sender's user ID
 # + content - The new message content
 # + version - The current version of the message
+# + isEncrypted - Whether the message is e2ee encrypted
 # + return - The updated Message or error
-public isolated function editMessage(MessageStoreClient db, int messageId, int chatId, int senderId, string content, int version) returns Message|error {
+public isolated function editMessage(MessageStoreClient db, int messageId, int chatId, int senderId, string content, int version, boolean isEncrypted = false) returns Message|error {
     if content.length() > 4000 {
         return error("Message content exceeds 4000 characters limit");
     }
-    return db->editMessage(messageId, chatId, senderId, content, version);
+    return db->editMessage(messageId, chatId, senderId, content, version, isEncrypted);
 }
 
 # Marks a message as read in the NoSQL database.
