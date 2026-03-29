@@ -169,3 +169,90 @@ function testGetAggregatedFeed() returns error? {
     test:assertEquals(feedItems[1].source_type, "GLOBAL");
     test:assertEquals(feedItems[1].id, 50);
 }
+
+@test:Config {}
+function testCreatePostLengthValidationValid() returns error? {
+    MockDbClient db = new;
+
+    string validContent = "";
+    foreach int i in 0 ..< 4000 {
+        validContent += "A";
+    }
+
+    CreatePostRequest req = {
+        content: validContent,
+        media_url: ()
+    };
+
+    Post post = check createPost(db, 1, req);
+    test:assertEquals(post.id, 1);
+}
+
+@test:Config {}
+function testCreatePostLengthValidationInvalid() {
+    MockDbClient db = new;
+
+    string invalidContent = "";
+    foreach int i in 0 ..< 4001 {
+        invalidContent += "A";
+    }
+
+    CreatePostRequest req = {
+        content: invalidContent,
+        media_url: ()
+    };
+
+    Post|error result = createPost(db, 1, req);
+    test:assertTrue(result is error);
+    if result is error {
+        test:assertEquals(result.message(), "Post content exceeds 4000 characters limit");
+    }
+}
+
+@test:Config {}
+function testEditPostLengthValidationValid() returns error? {
+    MockDbClient db = new([{
+        "id": 1,
+        "user_id": 1,
+        "content": "Updated Content",
+        "media_url": (),
+        "created_at": time:utcNow(),
+        "version": 2
+    }]);
+
+    string validContent = "";
+    foreach int i in 0 ..< 4000 {
+        validContent += "A";
+    }
+
+    EditPostRequest req = {
+        content: validContent,
+        media_url: (),
+        version: 1
+    };
+
+    Post post = check editPost(db, 1, 1, req);
+    test:assertEquals(post.id, 1);
+}
+
+@test:Config {}
+function testEditPostLengthValidationInvalid() {
+    MockDbClient db = new;
+
+    string invalidContent = "";
+    foreach int i in 0 ..< 4001 {
+        invalidContent += "A";
+    }
+
+    EditPostRequest req = {
+        content: invalidContent,
+        media_url: (),
+        version: 1
+    };
+
+    Post|error result = editPost(db, 1, 1, req);
+    test:assertTrue(result is error);
+    if result is error {
+        test:assertEquals(result.message(), "Post content exceeds 4000 characters limit");
+    }
+}

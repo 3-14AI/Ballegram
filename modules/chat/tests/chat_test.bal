@@ -213,3 +213,91 @@ function testMarkMessageAsReadAlreadyRead() returns error? {
         test:assertEquals(result.message(), "Already read");
     }
 }
+
+@test:Config {}
+function testSaveMessageLengthValidationValid() returns error? {
+    Message expectedMessage = {
+        id: 101,
+        chat_id: 1,
+        sender_id: 2,
+        content: "A",
+        created_at: time:utcNow(),
+        version: 1
+    };
+
+    MockMessageStoreClient mockDb = new(messageResponse = expectedMessage.cloneReadOnly());
+
+    // 4000 characters
+    string validContent = "";
+    foreach int i in 0 ..< 4000 {
+        validContent += "A";
+    }
+
+    Message|error result = saveMessage(mockDb, 1, 2, validContent);
+
+    test:assertTrue(result is Message);
+}
+
+@test:Config {}
+function testSaveMessageLengthValidationInvalid() returns error? {
+    MockMessageStoreClient mockDb = new();
+
+    // 4001 characters
+    string invalidContent = "";
+    foreach int i in 0 ..< 4001 {
+        invalidContent += "A";
+    }
+
+    Message|error result = saveMessage(mockDb, 1, 2, invalidContent);
+
+    test:assertTrue(result is error);
+    if result is error {
+        test:assertEquals(result.message(), "Message content exceeds 4000 characters limit");
+    }
+}
+
+@test:Config {}
+function testEditMessageLengthValidationValid() returns error? {
+    Message editedMsg = {
+        id: 1,
+        chat_id: 1,
+        sender_id: 2,
+        content: "A",
+        created_at: time:utcNow(),
+        version: 2
+    };
+
+    MockMessageStoreClient mockDb = new(messageResponse = editedMsg.cloneReadOnly());
+
+    // 4000 characters
+    string validContent = "";
+    foreach int i in 0 ..< 4000 {
+        validContent += "A";
+    }
+
+    Message|error result = editMessage(mockDb, 1, 1, 2, validContent, 1);
+
+    // returns "Not implemented" but definitely not a length validation error
+    test:assertTrue(result is error);
+    if result is error {
+        test:assertNotEquals(result.message(), "Message content exceeds 4000 characters limit");
+    }
+}
+
+@test:Config {}
+function testEditMessageLengthValidationInvalid() returns error? {
+    MockMessageStoreClient mockDb = new();
+
+    // 4001 characters
+    string invalidContent = "";
+    foreach int i in 0 ..< 4001 {
+        invalidContent += "A";
+    }
+
+    Message|error result = editMessage(mockDb, 1, 1, 2, invalidContent, 1);
+
+    test:assertTrue(result is error);
+    if result is error {
+        test:assertEquals(result.message(), "Message content exceeds 4000 characters limit");
+    }
+}

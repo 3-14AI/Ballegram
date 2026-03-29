@@ -1,6 +1,12 @@
 import ballerina/sql;
 
 public isolated function createPost(DbClient db, int userId, CreatePostRequest req) returns Post|error {
+    if req.content is string {
+        string postContent = <string>req.content;
+        if postContent.length() > 4000 {
+            return error("Post content exceeds 4000 characters limit");
+        }
+    }
     if req.content == () && req.media_url == () {
         return error("Post must have content or media");
     }
@@ -36,6 +42,12 @@ public isolated function getFeed(DbClient db, int limitCount = 10, int offsetCou
 }
 
 public isolated function editPost(DbClient db, int postId, int userId, EditPostRequest req) returns Post|error {
+    if req.content is string {
+        string postContent = <string>req.content;
+        if postContent.length() > 4000 {
+            return error("Post content exceeds 4000 characters limit");
+        }
+    }
     sql:ParameterizedQuery query = `
         UPDATE posts
         SET content = ${req.content}, media_url = ${req.media_url}, version = ${req.version} + 1

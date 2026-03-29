@@ -43,6 +43,9 @@ public isolated function createChat(DbClient db, int[] participantIds, ChatType 
 # + content - The message content
 # + return - The created Message or error
 public isolated function saveMessage(MessageStoreClient db, int chatId, int senderId, string content) returns Message|error {
+    if content.length() > 4000 {
+        return error("Message content exceeds 4000 characters limit");
+    }
     return db->saveMessage(chatId, senderId, content);
 }
 
@@ -99,6 +102,9 @@ public isolated function getMissedMessages(MessageStoreClient db, int chatId, in
 # + version - The current version of the message
 # + return - The updated Message or error
 public isolated function editMessage(MessageStoreClient db, int messageId, int chatId, int senderId, string content, int version) returns Message|error {
+    if content.length() > 4000 {
+        return error("Message content exceeds 4000 characters limit");
+    }
     return db->editMessage(messageId, chatId, senderId, content, version);
 }
 
