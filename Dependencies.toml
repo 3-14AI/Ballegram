@@ -534,6 +534,7 @@ dependencies = [
 modules = [
 	{org = "jules", packageName = "ballegram", moduleName = "ballegram"},
 	{org = "jules", packageName = "ballegram", moduleName = "ballegram.auth"},
+	{org = "jules", packageName = "ballegram", moduleName = "ballegram.bot"},
 	{org = "jules", packageName = "ballegram", moduleName = "ballegram.broker"},
 	{org = "jules", packageName = "ballegram", moduleName = "ballegram.chat"},
 	{org = "jules", packageName = "ballegram", moduleName = "ballegram.common"},
