@@ -4,6 +4,7 @@ import ballerina/time;
 public type MessageStoreClient isolated client object {
     isolated remote function saveMessage(int chatId, int senderId, string content) returns Message|error;
     isolated remote function getChatHistory(int chatId) returns stream<Message, error?>|error;
+    isolated remote function markMessageAsRead(int messageId, int userId, ChatType chatType) returns Message|error;
     isolated remote function editMessage(int messageId, int chatId, int senderId, string content, int version) returns Message|error;
     isolated remote function getMessagesSince(int chatId, int lastMessageId) returns stream<Message, error?>|error;
     isolated remote function deleteOldMessages(int retentionSeconds) returns error?;
@@ -176,6 +177,84 @@ public isolated client class OpenSearchMessageClient {
         }
 
         return new stream<Message, error?>(new MessageStream(messages.cloneReadOnly()));
+    }
+
+    isolated remote function markMessageAsRead(int messageId, int userId, ChatType chatType) returns Message|error {
+        json getQueryPayload = {"query": {"term": {"id": messageId}}};
+        http:Response getResp = check self.osHttp->post("/" + self.indexName + "/_search", getQueryPayload);
+        json resJson = check getResp.getJsonPayload();
+        json hitsWrapper = check resJson.hits;
+        json[] hitsArray = check hitsWrapper.hits.ensureType();
+        if hitsArray.length() == 0 {
+            return error("Message not found");
+        }
+        map<json> hitMap = check hitsArray[0].ensureType();
+        map<json> src = check hitMap["_source"].ensureType();
+
+        int[] currentReadBy = [];
+        if src.hasKey("read_by") {
+            json[] rb = check src["read_by"].ensureType();
+            foreach json rbVal in rb {
+                currentReadBy.push(check int:fromString(rbVal.toString()));
+            }
+        }
+
+        int currentReadCount = 0;
+        if src.hasKey("read_count") {
+             currentReadCount = check int:fromString(src["read_count"].toString());
+        }
+
+        boolean currentIsRead = false;
+        if src.hasKey("is_read") {
+            currentIsRead = check boolean:fromString(src["is_read"].toString());
+        }
+
+        foreach int rb in currentReadBy {
+            if rb == userId {
+                return error("Already read");
+            }
+        }
+
+        int newReadCount = currentReadCount + 1;
+        currentReadBy.push(userId);
+        boolean newIsRead = currentIsRead;
+
+        if chatType == DIRECT {
+             newIsRead = true;
+        } else if chatType == GROUP && newReadCount >= 3 {
+             newIsRead = true;
+        }
+
+        map<json> doc = {"doc": {"read_by": currentReadBy, "read_count": newReadCount, "is_read": newIsRead}};
+        string docId = hitMap["_id"].toString();
+        http:Response postRes = check self.osHttp->post("/" + self.indexName + "/_update/" + docId, doc);
+
+        int cId = check int:fromString(src["chat_id"].toString());
+        int? sId = ();
+        if src["sender_id"] != () {
+            sId = check int:fromString(src["sender_id"].toString());
+        }
+        string content_val = src["content"].toString();
+        int t0 = check int:fromString(src["created_at_0"].toString());
+        decimal t1 = check decimal:fromString(src["created_at_1"].toString());
+        time:Utc createdAt = [t0, t1];
+        int ver = 1;
+        if src.hasKey("version") {
+            ver = check int:fromString(src["version"].toString());
+        }
+
+        Message msg = {
+            id: messageId,
+            chat_id: cId,
+            sender_id: sId,
+            content: content_val,
+            created_at: createdAt,
+            version: ver,
+            read_by: currentReadBy,
+            read_count: newReadCount,
+            is_read: newIsRead
+        };
+        return msg;
     }
 
     isolated remote function editMessage(int messageId, int chatId, int senderId, string content, int version) returns Message|error {

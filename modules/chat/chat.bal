@@ -101,3 +101,30 @@ public isolated function getMissedMessages(MessageStoreClient db, int chatId, in
 public isolated function editMessage(MessageStoreClient db, int messageId, int chatId, int senderId, string content, int version) returns Message|error {
     return db->editMessage(messageId, chatId, senderId, content, version);
 }
+
+# Marks a message as read in the NoSQL database.
+#
+# + db - The message store client
+# + messageId - The message ID
+# + userId - The user ID who read the message
+# + chatType - The type of chat (DIRECT or GROUP)
+# + return - The updated Message or error
+public isolated function markMessageAsRead(MessageStoreClient db, int messageId, int userId, ChatType chatType) returns Message|error {
+    return db->markMessageAsRead(messageId, userId, chatType);
+}
+
+# Retrieves a chat by its ID.
+#
+# + db - The database client
+# + chatId - The chat ID
+# + return - The Chat or error
+public isolated function getChat(DbClient db, int chatId) returns Chat|error {
+    sql:ParameterizedQuery query = `
+        SELECT id, name, type, created_at
+        FROM chats
+        WHERE id = ${chatId}
+    `;
+
+    record {} result = check db->queryRow(query);
+    return result.cloneWithType(Chat);
+}

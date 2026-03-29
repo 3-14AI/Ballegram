@@ -11,6 +11,50 @@ public isolated client class MockMessageStoreClient {
         self.messagesResponse = messagesResponse;
     }
 
+    isolated remote function markMessageAsRead(int messageId, int userId, ChatType chatType) returns Message|error {
+        Message? & readonly msg;
+        lock {
+            msg = self.messageResponse;
+        }
+        if msg is () {
+            return error("Message not found");
+        }
+
+        int[] currentReadBy = [];
+        foreach int rbb in msg.read_by {
+            currentReadBy.push(rbb);
+        }
+
+        foreach int rb in currentReadBy {
+            if rb == userId {
+                return error("Already read");
+            }
+        }
+
+        int newReadCount = msg.read_count + 1;
+        currentReadBy.push(userId);
+        boolean newIsRead = msg.is_read;
+
+        if chatType == DIRECT {
+             newIsRead = true;
+        } else if chatType == GROUP && newReadCount >= 3 {
+             newIsRead = true;
+        }
+
+        Message updatedMsg = {
+            id: msg.id,
+            chat_id: msg.chat_id,
+            sender_id: msg.sender_id,
+            content: msg.content,
+            created_at: msg.created_at,
+            version: msg.version,
+            read_by: currentReadBy,
+            read_count: newReadCount,
+            is_read: newIsRead
+        };
+        return updatedMsg;
+    }
+
     isolated remote function editMessage(int messageId, int chatId, int senderId, string content, int version) returns Message|error {
         return error("Not implemented");
     }

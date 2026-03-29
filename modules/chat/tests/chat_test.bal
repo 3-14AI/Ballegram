@@ -143,3 +143,73 @@ function testEditMessage() returns error? {
     // As mockDb returns "Not implemented"
     test:assertTrue(result is error);
 }
+
+@test:Config {}
+function testMarkMessageAsReadDirect() returns error? {
+    Message msg = {
+        id: 1, chat_id: 1, sender_id: 2, content: "To Read", created_at: time:utcNow(),
+        version: 1, read_by: [], read_count: 0, is_read: false
+    };
+
+    MockMessageStoreClient mockDb = new(messageResponse = msg.cloneReadOnly());
+    Message|error result = markMessageAsRead(mockDb, 1, 1, DIRECT);
+
+    test:assertTrue(result is Message);
+    if result is Message {
+        test:assertEquals(result.read_count, 1);
+        test:assertTrue(result.is_read);
+        test:assertEquals(result.read_by, [1]);
+    }
+}
+
+@test:Config {}
+function testMarkMessageAsReadGroup() returns error? {
+    Message msg = {
+        id: 1, chat_id: 1, sender_id: 2, content: "To Read Group", created_at: time:utcNow(),
+        version: 1, read_by: [3, 4], read_count: 2, is_read: false
+    };
+
+    MockMessageStoreClient mockDb = new(messageResponse = msg.cloneReadOnly());
+    Message|error result = markMessageAsRead(mockDb, 1, 1, GROUP);
+
+    test:assertTrue(result is Message);
+    if result is Message {
+        test:assertEquals(result.read_count, 3);
+        test:assertTrue(result.is_read); // Reached threshold of 3
+        test:assertEquals(result.read_by, [3, 4, 1]);
+    }
+}
+
+@test:Config {}
+function testMarkMessageAsReadGroupNotThreshold() returns error? {
+    Message msg = {
+        id: 1, chat_id: 1, sender_id: 2, content: "To Read Group Not", created_at: time:utcNow(),
+        version: 1, read_by: [3], read_count: 1, is_read: false
+    };
+
+    MockMessageStoreClient mockDb = new(messageResponse = msg.cloneReadOnly());
+    Message|error result = markMessageAsRead(mockDb, 1, 1, GROUP);
+
+    test:assertTrue(result is Message);
+    if result is Message {
+        test:assertEquals(result.read_count, 2);
+        test:assertFalse(result.is_read); // Not reached threshold of 3
+        test:assertEquals(result.read_by, [3, 1]);
+    }
+}
+
+@test:Config {}
+function testMarkMessageAsReadAlreadyRead() returns error? {
+    Message msg = {
+        id: 1, chat_id: 1, sender_id: 2, content: "Already Read", created_at: time:utcNow(),
+        version: 1, read_by: [1], read_count: 1, is_read: true
+    };
+
+    MockMessageStoreClient mockDb = new(messageResponse = msg.cloneReadOnly());
+    Message|error result = markMessageAsRead(mockDb, 1, 1, DIRECT);
+
+    test:assertTrue(result is error);
+    if result is error {
+        test:assertEquals(result.message(), "Already read");
+    }
+}
