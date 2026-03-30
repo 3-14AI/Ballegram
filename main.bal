@@ -4,6 +4,7 @@ import ballerinax/postgresql;
 import ballegram.common;
 import ballegram.services as _;
 import ballegram.devices as _;
+import ballegram.widgets as _;
 
 configurable common:DatabaseConfig database = ?;
 
