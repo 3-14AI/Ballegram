@@ -11,9 +11,10 @@
 ## 🛠 Технологический стек
 
 *   **Язык:** [Ballerina](https://ballerina.io/) (Swan Lake)
-*   **База данных:** PostgreSQL (основные реляционные данные)
-*   **Кеширование и Pub/Sub:** Redis (управление сессиями, распределение WebSocket)
-*   **Объектное хранилище:** S3 / MinIO (изображения, видео)
+*   **База данных:** PostgreSQL (реляционные данные), OpenSearch (NoSQL, история сообщений), Neo4j (Графовая БД, социальные связи)
+*   **Брокер сообщений и Pub/Sub:** Apache Kafka (CDC, асинхронная маршрутизация), Redis (кеширование сессий)
+*   **Межсервисное взаимодействие:** gRPC
+*   **Объектное хранилище:** S3 / MinIO (изображения, аудио)
 *   **Контейнеризация:** Docker и Kubernetes
 
 ## 📂 Структура проекта
@@ -27,8 +28,13 @@ ballegram/
 ├── modules/                # Логика предметных областей
 │   ├── auth/               # Регистрация пользователей, выдача JWT
 │   ├── chat/               # Логика обмена сообщениями, обработка WebSocket
-│   ├── social/             # Лента, посты, взаимодействия
+│   ├── social/             # Лента, посты, взаимодействия (Neo4j)
 │   ├── media/              # Обработка загрузки/скачивания в S3
+│   ├── bot/                # Открытый Bot API и вебхуки
+│   ├── broker/             # Интеграция с Kafka и CDC
+│   ├── devices/            # Управление устройствами и E2EE ключами
+│   ├── push/               # Push-уведомления (APNs, FCM)
+│   ├── widgets/            # B2B Web Widgets
 │   └── common/             # Общие типы, ошибки, клиент БД
 ├── service/                # Точки входа (слушатели HTTP/GraphQL/WebSocket)
 │   ├── api_service.bal     # Основной HTTP API
@@ -69,14 +75,16 @@ ballegram/
     *   `role` (ENUM: 'ADMIN', 'MEMBER')
     *   *PK: (chat_id, user_id)*
 
-*   **`messages`**
-    *   `id` (BIGSERIAL или TSID, PK)
-    *   `chat_id` (UUID, FK -> chats.id)
-    *   `sender_id` (UUID, FK -> users.id)
-    *   `content` (TEXT)
+*   **`messages` (OpenSearch / NoSQL)**
+    *   `id` (BIGINT, PK)
+    *   `chat_id` (UUID, Index)
+    *   `sender_id` (UUID)
+    *   `content` (TEXT, Encrypted for E2EE)
     *   `media_url` (VARCHAR, Nullable)
     *   `created_at` (TIMESTAMP)
     *   `is_read` (BOOLEAN)
+    *   `version` (INT) -- Для разрешения конфликтов (MVCC)
+    *   `read_count` (INT) -- Для дифференцированных статусов прочтения
 
 ### Социальная лента (подобно Instagram)
 *   **`posts`**
@@ -85,6 +93,7 @@ ballegram/
     *   `caption` (TEXT)
     *   `media_urls` (JSONB) -- Массив URL изображений
     *   `created_at` (TIMESTAMP)
+    *   `version` (INT) -- Для разрешения конфликтов (MVCC)
 
 *   **`likes`**
     *   `post_id` (UUID, FK -> posts.id)
@@ -97,6 +106,13 @@ ballegram/
     *   `user_id` (UUID, FK -> users.id)
     *   `content` (TEXT)
     *   `created_at` (TIMESTAMP)
+
+## 🛡 Безопасность и Архитектура
+
+*   **End-to-End Encryption (E2EE):** Приватные чаты используют протокол сквозного шифрования. Маршрутизация осуществляется сервером без доступа к ключам (успешное прохождение "mud puddle test").
+*   **Linked Devices:** Криптографически безопасный протокол авторизации новых устройств (например, Desktop через Mobile) с прямой передачей E2EE-истории.
+*   **MVCC и Last-Write-Wins:** Многоверсионное управление конкурентным доступом для корректной обработки сообщений и постов, измененных в офлайн-режиме.
+*   **CDC (Change Data Capture):** Использование Kafka для трансляции "дельт" состояния (cur_max_message_id) клиентам для минимизации задержек.
 
 ## 🧪 Стратегия тестирования (Без клиента)
 

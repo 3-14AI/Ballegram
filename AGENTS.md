@@ -35,7 +35,11 @@ if (result is error) { ... }
 
 ## 3. Database Changes
 
-*   The project uses **PostgreSQL**.
+*   Проект использует **PostgreSQL** (реляционные данные), **OpenSearch** (история сообщений) и **Neo4j** (социальный граф).
+*   **Интеграция gRPC**: Межсервисное взаимодействие (например, API Gateway с IdP) использует gRPC. При изменениях обновляйте proto-файлы и используйте сгенерированные стабы (`auth_pb.bal`).
+*   **Kafka и CDC**: Маршрутизация событий и Change Data Capture (CDC) должны использовать `EventBroker` из модуля `broker` для широковещательной рассылки событий.
+*   **MVCC (Многоверсионное управление конкурентным доступом)**: При редактировании постов или сообщений обязательно инкрементируйте и валидируйте поле `version`.
+*   **E2EE (Сквозное шифрование)**: Содержимое приватных чатов должно помечаться флагом `isEncrypted=true` и обрабатываться сервером исключительно как непрозрачные строки/массивы байт без логирования контента.
 *   If you need to change the schema:
     1.  Update the `README.md` schema section.
     2.  Create a SQL migration script in `docker/init.sql` (for new setups) or a numbered migration file if a migration system is in place.
