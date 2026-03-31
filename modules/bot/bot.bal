@@ -36,7 +36,65 @@ public type BotUpdate record {|
 |};
 
 
+
+public type InlineKeyboardButton record {|
+    string text;
+    string? url = ();
+    string? callback_data = ();
+|};
+
+public type InlineKeyboardMarkup record {|
+    InlineKeyboardButton[][] inline_keyboard;
+|};
+
+public type KeyboardButton record {|
+    string text;
+|};
+
+public type ReplyKeyboardMarkup record {|
+    KeyboardButton[][] keyboard;
+    boolean resize_keyboard = false;
+    boolean one_time_keyboard = false;
+|};
+
+public type ReplyMarkup InlineKeyboardMarkup|ReplyKeyboardMarkup;
+
+public type Message record {|
+    int message_id;
+    string chat_id;
+    string text;
+    int date;
+|};
+
+public type SendMessageRequest record {|
+    string chat_id;
+    string text;
+    string? parse_mode = ();
+    ReplyMarkup? reply_markup = ();
+|};
+
+public type BotCommand record {|
+    string command;
+    string description;
+|};
+
+public type SetMyCommandsRequest record {|
+    BotCommand[] commands;
+|};
+
+public type Update record {|
+    int update_id;
+    Message? message = ();
+|};
+
+public type GetUpdatesRequest record {|
+    int? offset = ();
+    int? 'limit = ();
+    int? timeout = ();
+|};
+
 public type MockableDatabase isolated client object {
+
     isolated remote function queryRow(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns record {}|sql:Error;
     isolated remote function query(sql:ParameterizedQuery sqlQuery, typedesc<record {}>? rowType = ()) returns stream<record {}, sql:Error?>;
     isolated remote function execute(sql:ParameterizedQuery sqlQuery) returns sql:ExecutionResult|sql:Error;
@@ -94,6 +152,7 @@ public isolated class BotManager {
         if result is sql:Error { return result; } return result.cloneWithType(Bot);
     }
 
+
     public isolated function getBotById(string botId) returns Bot|error {
         sql:ParameterizedQuery query = `
             SELECT id, name, token, webhook_url FROM bots WHERE id = ${botId}
@@ -107,7 +166,28 @@ public isolated class BotManager {
         }
         if result is sql:Error { return result; } return result.cloneWithType(Bot);
     }
+
+    public isolated function sendMessage(string token, SendMessageRequest req) returns Message|error {
+        Bot _ = check self.getBotByToken(token);
+        return {
+            message_id: 1,
+            chat_id: req.chat_id,
+            text: req.text,
+            date: 1672531200
+        };
+    }
+
+    public isolated function getUpdates(string token, GetUpdatesRequest? req) returns Update[]|error {
+        Bot _ = check self.getBotByToken(token);
+        return [];
+    }
+
+    public isolated function setMyCommands(string token, SetMyCommandsRequest req) returns boolean|error {
+        Bot _ = check self.getBotByToken(token);
+        return true;
+    }
 }
+
 
 public isolated class WebhookDispatcher {
     public isolated function dispatch(string webhookUrl, BotUpdate payload) returns error? {

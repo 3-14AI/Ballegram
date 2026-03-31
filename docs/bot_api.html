@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Документация Ballegram Bot API</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; display: flex; }
+        .sidebar { width: 250px; background: #f4f4f4; padding: 20px; height: 100vh; position: fixed; overflow-y: auto; }
+        .sidebar h2 { font-size: 1.2em; }
+        .sidebar ul { list-style: none; padding: 0; }
+        .sidebar li { margin-bottom: 10px; }
+        .sidebar a { text-decoration: none; color: #007bff; }
+        .sidebar a:hover { text-decoration: underline; }
+        .content { margin-left: 290px; padding: 40px; max-width: 800px; }
+        h1, h2, h3 { color: #222; }
+        pre { background: #eee; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        code { font-family: Consolas, monospace; background: #eee; padding: 2px 5px; border-radius: 3px; }
+        .endpoint { background: #eef7ff; padding: 10px 15px; border-left: 4px solid #007bff; margin-bottom: 20px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f4f4f4; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>Навигация</h2>
+    <ul>
+        <li><a href="#intro">Введение</a></li>
+        <li><a href="#types">Доступные типы</a></li>
+        <li><a href="#register">Регистрация (register)</a></li>
+        <li><a href="#webhook">Установка Webhook</a></li>
+        <li><a href="#send-message">Отправка сообщений (sendMessage)</a></li>
+        <li><a href="#get-updates">Получение обновлений (getUpdates)</a></li>
+        <li><a href="#set-commands">Настройка команд (setMyCommands)</a></li>
+    </ul>
+</div>
+
+<div class="content">
+    <h1 id="intro">Документация Ballegram Bot API</h1>
+    <p>Добро пожаловать в Ballegram Bot API! Данный API позволяет создавать ботов с возможностями, приближенными к современному Telegram API. Взаимодействие осуществляется по HTTP POST или GET запросам.</p>
+
+    <h2 id="types">Основные типы данных</h2>
+    <p>Все запросы и ответы используют JSON.</p>
+
+    <h3>Message</h3>
+    <pre><code>{
+  "message_id": 123,
+  "chat_id": "user-uuid",
+  "text": "Hello world",
+  "date": 1672531200
+}</code></pre>
+
+    <h3>ReplyKeyboardMarkup / InlineKeyboardMarkup</h3>
+    <p>Позволяют прикреплять клавиатуры к сообщениям для удобного взаимодействия с пользователем.</p>
+
+    <h2 id="register">Регистрация бота</h2>
+    <div class="endpoint">POST /bot/register</div>
+    <p>Регистрирует нового бота и возвращает токен доступа.</p>
+    <p><strong>Параметры:</strong></p>
+    <table>
+        <tr><th>Поле</th><th>Тип</th><th>Описание</th></tr>
+        <tr><td>name</td><td>String</td><td>Имя нового бота</td></tr>
+    </table>
+
+    <h2 id="webhook">Установка Webhook</h2>
+    <div class="endpoint">POST /bot/{botId}/webhook</div>
+    <p>Устанавливает URL для получения входящих обновлений (сообщений).</p>
+
+    <h2 id="send-message">Отправка сообщений</h2>
+    <div class="endpoint">POST /bot/{token}/sendMessage</div>
+    <p>Используйте этот метод для отправки текстовых сообщений.</p>
+    <p><strong>Тело запроса:</strong></p>
+    <table>
+        <tr><th>Поле</th><th>Тип</th><th>Обязательно</th><th>Описание</th></tr>
+        <tr><td>chat_id</td><td>String</td><td>Да</td><td>Уникальный идентификатор чата</td></tr>
+        <tr><td>text</td><td>String</td><td>Да</td><td>Текст сообщения (до 4000 символов)</td></tr>
+        <tr><td>reply_markup</td><td>Object</td><td>Нет</td><td>Дополнительные опции интерфейса (InlineKeyboardMarkup, ReplyKeyboardMarkup)</td></tr>
+    </table>
+    <p><strong>Пример:</strong></p>
+    <pre><code>{
+  "chat_id": "12345",
+  "text": "Привет!",
+  "reply_markup": {
+    "inline_keyboard": [[{"text": "Нажми меня", "callback_data": "btn1"}]]
+  }
+}</code></pre>
+
+    <h2 id="get-updates">Получение обновлений (Long Polling)</h2>
+    <div class="endpoint">GET /bot/{token}/getUpdates</div>
+    <p>Используйте этот метод для получения входящих обновлений через long polling (как альтернатива webhook).</p>
+    <p><strong>Query параметры:</strong></p>
+    <ul>
+        <li><code>offset</code> (int): Идентификатор первого возвращаемого обновления</li>
+        <li><code>limit</code> (int): Ограничение количества (по умолчанию 100)</li>
+        <li><code>timeout</code> (int): Таймаут в секундах</li>
+    </ul>
+
+    <h2 id="set-commands">Установка команд бота</h2>
+    <div class="endpoint">POST /bot/{token}/setMyCommands</div>
+    <p>Позволяет изменить список команд, поддерживаемых ботом (меню команд).</p>
+    <p><strong>Тело запроса:</strong></p>
+    <pre><code>{
+  "commands": [
+    {"command": "start", "description": "Запуск бота"},
+    {"command": "help", "description": "Помощь"}
+  ]
+}</code></pre>
+</div>
+
+</body>
+</html>

@@ -48,4 +48,35 @@ service /bot on ep {
 
         return http:OK;
     }
+
+    isolated resource function post [string token]/sendMessage(@http:Payload bot:SendMessageRequest req) returns bot:Message|http:NotFound|http:InternalServerError {
+        bot:Message|error result = botManager.sendMessage(token, req);
+        if result is common:NotFoundError {
+            return http:NOT_FOUND;
+        } else if result is error {
+            http:InternalServerError ie = {body: result.message()}; return ie;
+        }
+        if result is error { return <http:InternalServerError>{body: result.message()}; } return result;
+    }
+
+    isolated resource function get [string token]/getUpdates(int? offset, int? 'limit, int? timeout) returns bot:Update[]|http:NotFound|http:InternalServerError {
+        bot:GetUpdatesRequest req = { offset, 'limit, timeout };
+        bot:Update[]|error result = botManager.getUpdates(token, req);
+        if result is common:NotFoundError {
+            return http:NOT_FOUND;
+        } else if result is error {
+            http:InternalServerError ie = {body: result.message()}; return ie;
+        }
+        if result is error { return <http:InternalServerError>{body: result.message()}; } return result;
+    }
+
+    isolated resource function post [string token]/setMyCommands(@http:Payload bot:SetMyCommandsRequest req) returns boolean|http:NotFound|http:InternalServerError {
+        boolean|error result = botManager.setMyCommands(token, req);
+        if result is common:NotFoundError {
+            return http:NOT_FOUND;
+        } else if result is error {
+            http:InternalServerError ie = {body: result.message()}; return ie;
+        }
+        if result is error { return <http:InternalServerError>{body: result.message()}; } return result;
+    }
 }
